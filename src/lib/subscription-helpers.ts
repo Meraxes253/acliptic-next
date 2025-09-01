@@ -1,0 +1,66 @@
+import { db } from "@/db"
+import { subscriptions, customers, plans, users } from "@/db/schema/users"
+import { eq, and } from "drizzle-orm"
+
+// Get user's current subscription with proper joins
+export async function getUserSubscription(userId: string) {
+  const result = await db
+  .select({
+    subscription: {
+      stripeSubscriptionId: subscriptions.stripeSubscriptionId,
+      is_active: subscriptions.is_active,
+      currentPeriodStart: subscriptions.currentPeriodStart,
+      currentPeriodEnd: subscriptions.currentPeriodEnd,
+    },
+    plan: {
+      id: plans.id,
+      name: plans.name,
+      amount: plans.amount,
+      currency: plans.currency,
+      interval: plans.interval,
+    },
+    users: {
+      email: users.email,
+      name: users.name,
+    },
+  })
+  .from(subscriptions)
+  .innerJoin(plans, eq(subscriptions.priceId, plans.id))
+  .innerJoin(users, eq(subscriptions.userId, users.id))
+  .where(and(eq(subscriptions.userId, userId), eq(subscriptions.is_active, true)))
+    .limit(1)
+
+
+  return result[0] || null
+}
+
+// Get customer by user ID
+export async function getCustomerByUserId(userId: string) {
+  const result = await db.select().from(users).where(eq(users.id, userId)).limit(1)
+
+  return result[0] || null
+}
+
+// Get or create customer
+export async function getOrCreateCustomer(userId: string, email: string, name?: string) {
+  // First try to find existing customer
+  const existingCustomer = await getCustomerByUserId(userId)
+
+  if (existingCustomer) {
+    return existingCustomer
+  }
+
+  // If no customer exists, return null - customer should be created via Stripe webhook
+  return null
+}
+
+// Check if user has active subscription
+export async function hasActiveSubscription(userId: string): Promise<boolean> {
+  const subscription = await getUserSubscription(userId)
+  return subscription !== null && subscription.subscription.status === "active"
+}
+
+// Get all available plans
+export async function getAvailablePlans() {
+  return await db.select().from(plans).where(eq(plans.active, true))
+}

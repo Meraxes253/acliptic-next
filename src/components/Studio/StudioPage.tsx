@@ -1,11 +1,14 @@
 "use client"
 
+import type React from "react"
+
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import Navigation from "@/components/afterNav"
 import PluginDialog from "@/components/Studio/pluginDialog"
 import PresetDialog from "@/components/Studio/PresetDialog"
@@ -44,6 +47,14 @@ interface Podcast {
   streamTime: string
   clipCount: number
   autoUploaded: boolean
+}
+
+// URL type enum for better type safety
+enum URLType {
+  YOUTUBE_VIDEO = "youtube_video",
+  TWITCH_LIVE = "twitch_live",
+  TWITCH_VOD = "twitch_vod",
+  INVALID = "invalid",
 }
 
 // Helper function to format stream time
@@ -86,6 +97,57 @@ function extractClipCount(clipCount: ClipCount[] | number | null | undefined): n
 
   // Fallback
   return 0
+}
+
+function validateAndParseURL(url: string): { type: URLType; data: any } {
+  const trimmedUrl = url.trim()
+
+  // YouTube video pattern: https://www.youtube.com/watch?v=VIDEO_ID
+  const youtubePattern = /^https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/
+  const youtubeMatch = trimmedUrl.match(youtubePattern)
+
+  if (youtubeMatch) {
+    return {
+      type: URLType.YOUTUBE_VIDEO,
+      data: {
+        videoId: youtubeMatch[1],
+        url: trimmedUrl,
+      },
+    }
+  }
+
+  // Twitch live stream pattern: https://www.twitch.tv/USERNAME
+  const twitchLivePattern = /^https:\/\/www\.twitch\.tv\/([a-zA-Z0-9_]+)$/
+  const twitchLiveMatch = trimmedUrl.match(twitchLivePattern)
+
+  if (twitchLiveMatch) {
+    return {
+      type: URLType.TWITCH_LIVE,
+      data: {
+        username: twitchLiveMatch[1],
+        url: trimmedUrl,
+      },
+    }
+  }
+
+  // Twitch VOD pattern: https://www.twitch.tv/videos/VIDEO_ID
+  const twitchVodPattern = /^https:\/\/www\.twitch\.tv\/videos\/(\d+)/
+  const twitchVodMatch = trimmedUrl.match(twitchVodPattern)
+
+  if (twitchVodMatch) {
+    return {
+      type: URLType.TWITCH_VOD,
+      data: {
+        videoId: twitchVodMatch[1],
+        url: trimmedUrl,
+      },
+    }
+  }
+
+  return {
+    type: URLType.INVALID,
+    data: null,
+  }
 }
 
 // Skeleton Components
@@ -152,6 +214,9 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
   const [podcasts, setPodcasts] = useState<Podcast[]>([])
   const [pluginState, setPluginState] = useState<{ plugin_active: boolean } | null>(null)
 
+  const [inputUrl, setInputUrl] = useState<string>("")
+  const [isProcessing, setIsProcessing] = useState<boolean>(false)
+
   // Replace useSWR with manual state management
   const [streamsData, setStreamsData] = useState<ApiResponse | null>(null)
   const [streamsError, setStreamsError] = useState<Error | null>(null)
@@ -199,8 +264,69 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
     }
   }
 
-  // Handle plugin button click
-  const handlePluginButtonClick = async () => {
+  const handleStartClipping = async () => {
+    if (!inputUrl.trim()) {
+      toast.error("Please enter a URL", {
+        description: "URL field cannot be empty",
+        duration: 3000,
+      })
+      return
+    }
+
+    const progressToastId = toast.loading("Starting clipping process...", {
+      description: "Please wait while we process your request",
+    })
+
+    setIsProcessing(true)
+
+    try {
+      const { type, data } = validateAndParseURL(inputUrl)
+
+      console.log("type:", type)
+      console.log("data", data)
+
+      switch (type) {
+        case URLType.YOUTUBE_VIDEO:
+          console.log("pre recorded YT video")
+          await handleYouTubeVideo(data.videoId, data.url)
+          break
+
+        case URLType.TWITCH_LIVE:
+          console.log("twitch live")
+          await handlePluginButtonClickTwitchLive(data.username, data.url)
+          break
+
+        case URLType.TWITCH_VOD:
+          console.log("twitch VOD")
+          await handleTwitchVOD(data.videoId, data.url)
+          break
+
+        case URLType.INVALID:
+        default:
+          toast.dismiss(progressToastId)
+          toast.error("Invalid URL format", {
+            description: "Please enter a valid YouTube video, Twitch live stream, or Twitch VOD URL",
+            duration: 4000,
+          })
+          return
+      }
+
+      toast.dismiss(progressToastId)
+      // Clear input on successful submission
+      setInputUrl("")
+    } catch (error) {
+      console.error("Error in handleStartClipping:", error)
+      toast.dismiss(progressToastId)
+      toast.error("An unexpected error occurred", {
+        description: "Please try again or check your internet connection",
+        duration: 4000,
+      })
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handlePluginButtonClickTwitchLive = async (twitchUsername: string, inputUrl: string) => {
     try {
       // Call the API to create a stream record
       const response1 = await fetch("/api/streams/twitch/live", {
@@ -210,7 +336,7 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
         },
         body: JSON.stringify({
           user_id: user_id,
-          twitch_username: twitch_username,
+          twitch_username: twitchUsername, // Use parsed username from URL
           auto_upload: true,
         }),
       })
@@ -218,10 +344,11 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
       const responseData1 = await response1.json()
       console.log("res 1: ", responseData1)
 
-      let stream_id
-      if (responseData1.confirmation === "success") {
-        stream_id = responseData1.data.stream_id
+      if (!response1.ok || responseData1.confirmation !== "success") {
+        throw new Error(responseData1.message || "Failed to create stream record")
       }
+
+      const stream_id = responseData1.data.stream_id
 
       // Call the API to launch plugin
       const response2 = await fetch("/api/launch-plugin/twitch/live", {
@@ -232,24 +359,164 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
         body: JSON.stringify({
           auto_upload: true,
           stream_id: stream_id,
+          twitch_username: twitchUsername,
         }),
       })
 
       const responseData2 = await response2.json()
       console.log(responseData2)
 
+      if (!response2.ok) {
+        throw new Error(responseData2.message || "Failed to launch clipping plugin")
+      }
+
       // Show success toast when both API calls complete successfully
-      toast.success("Clipping started successfully!", {
-        description: "Your stream clipping has been initiated",
+      toast.success("Twitch live clipping started successfully!", {
+        description: `Started clipping for ${twitchUsername}`,
         duration: 4000,
       })
+
+      window.location.reload()
     } catch (error) {
       const err = error as Error
-      console.error("Error starting process:", err)
-      toast.error("Failed to start clipping", {
-        description: "Please try again or check your connection",
+      console.error("Error starting Twitch live process:", err)
+      toast.error("Failed to start Twitch live clipping", {
+        description: err.message || "Please try again or check your connection",
         duration: 4000,
       })
+      throw error // Re-throw to be caught by handleStartClipping
+    }
+  }
+
+  const handleYouTubeVideo = async (videoId: string, inputUrl: string) => {
+    try {
+      // TODO: Implement YouTube video clipping API calls
+      console.log("YouTube video handler called with:", { videoId, inputUrl })
+
+      const response1 = await fetch("/api/streams/youtube/pre_recorded", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: user_id,
+          video_url: inputUrl, // Use parsed username from URL
+          auto_upload: true,
+        }),
+      })
+
+      const responseData1 = await response1.json()
+      console.log("res 1: ", responseData1)
+
+      if (!response1.ok || responseData1.confirmation !== "success") {
+        throw new Error(responseData1.message || "Failed to create stream record")
+      }
+
+      const stream_id = responseData1.data.stream_id
+
+      // Call the API to launch plugin
+      const response2 = await fetch("/api/launch-plugin/youtube/pre_recorded", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          video_url: inputUrl,
+          auto_upload: true,
+          stream_id: stream_id,
+        }),
+      })
+
+      const responseData2 = await response2.json()
+      console.log(responseData2)
+
+      if (!response2.ok) {
+        throw new Error(responseData2.message || "Failed to launch clipping plugin")
+      }
+
+      toast.success("YouTube video clipping started!", {
+        description: `Processing video: ${videoId}`,
+        duration: 4000,
+      })
+
+      window.location.reload()
+    } catch (error) {
+      const err = error as Error
+      console.error("Error starting YouTube video process:", err)
+      toast.error("Failed to start YouTube video clipping", {
+        description: err.message || "Please try again or check your connection",
+        duration: 4000,
+      })
+      throw error // Re-throw to be caught by handleStartClipping
+    }
+  }
+
+  const handleTwitchVOD = async (videoId: string, inputUrl: string) => {
+    try {
+      // TODO: Implement Twitch VOD clipping API calls
+      console.log("Twitch VOD handler called with:", { videoId, inputUrl })
+
+      const response1 = await fetch("/api/streams/twitch/pre_recorded", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: user_id,
+          twitch_url: inputUrl, // Use parsed username from URL
+          auto_upload: true,
+        }),
+      })
+
+      const responseData1 = await response1.json()
+      console.log("res 1: ", responseData1)
+
+      if (!response1.ok || responseData1.confirmation !== "success") {
+        throw new Error(responseData1.message || "Failed to create stream record")
+      }
+
+      const stream_id = responseData1.data.stream_id
+
+      // Call the API to launch plugin
+      const response2 = await fetch("/api/launch-plugin/twitch/pre_recorded", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          twitch_url: inputUrl,
+          auto_upload: true,
+          stream_id: stream_id,
+        }),
+      })
+
+      const responseData2 = await response2.json()
+      console.log(responseData2)
+
+      if (!response2.ok) {
+        throw new Error(responseData2.message || "Failed to launch clipping plugin")
+      }
+
+      toast.success("Twitch VOD clipping started!", {
+        description: `Processing VOD: ${videoId}`,
+        duration: 4000,
+      })
+
+      window.location.reload()
+    } catch (error) {
+      const err = error as Error
+      console.error("Error starting Twitch VOD process:", err)
+      toast.error("Failed to start Twitch VOD clipping", {
+        description: err.message || "Please try again or check your connection",
+        duration: 4000,
+      })
+      throw error // Re-throw to be caught by handleStartClipping
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleStartClipping()
     }
   }
 
@@ -309,30 +576,38 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
               <div className="flex-1"></div>
               <div className="flex justify-end w-full max-w-[1400px]">
                 <div className="flex flex-col sm:flex-row justify-between w-full max-w-[1400px] gap-4">
-                  <div className="flex justify-start">
-                    <Button
-                      className={`h-[42px] w-full sm:w-[220px] rounded-[12px] flex justify-center items-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border-2 hover:text-white ${
-                        pluginState?.plugin_active
-                          ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 border-red-500 text-white shadow-red-500/30"
-                          : "bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 border-emerald-500 text-white shadow-emerald-500/30"
-                      }`}
-                      variant="ghost"
-                      onClick={handlePluginButtonClick}
-                    >
-                      <div className="flex items-center gap-2">
-                        {pluginState?.plugin_active ? (
-                          <>
-                            <div className="w-2 h-2 bg-red-300 rounded-full animate-pulse"></div>
-                            <p className="text-[14px] font-semibold tracking-wide">CLIPPING LIVE</p>
-                          </>
-                        ) : (
-                          <>
-                            <div className="w-2 h-2 bg-emerald-300 rounded-full"></div>
-                            <p className="text-[14px] font-semibold tracking-wide">START CLIPPING</p>
-                          </>
-                        )}
-                      </div>
-                    </Button>
+                  <div className="flex justify-start flex-1">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:max-w-[500px]">
+                      <Input
+                        type="url"
+                        placeholder="Enter YouTube video, Twitch live, or Twitch VOD URL..."
+                        value={inputUrl}
+                        onChange={(e) => setInputUrl(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        className="h-[42px] rounded-[12px] border-2 border-gray-300 focus:border-emerald-500 transition-colors duration-200 bg-white"
+                        disabled={isProcessing}
+                      />
+                      <Button
+                        className="h-[42px] w-full sm:w-[140px] rounded-[12px] flex justify-center items-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border-2 hover:text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 border-emerald-500 text-white shadow-emerald-500/30"
+                        variant="ghost"
+                        onClick={handleStartClipping}
+                        disabled={isProcessing}
+                      >
+                        <div className="flex items-center gap-2">
+                          {isProcessing ? (
+                            <>
+                              <div className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse"></div>
+                              <p className="text-[14px] font-semibold tracking-wide">PROCESSING...</p>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-2 h-2 bg-emerald-300 rounded-full"></div>
+                              <p className="text-[14px] font-semibold tracking-wide">START CLIPPING</p>
+                            </>
+                          )}
+                        </div>
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex justify-end">
                     <Button

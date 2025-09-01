@@ -2,8 +2,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db";
-import { eq } from "drizzle-orm";
-import { stream, users } from "@/db/schema/users";
+import { and, count, eq, gte, lte, sql } from "drizzle-orm";
+import { plans, stream, subscriptions, users } from "@/db/schema/users";
 import axios from "axios";
 
 // Define response types for better type safety
@@ -250,6 +250,67 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const validatedData = CreateVideoStreamRequestSchema.parse(body);
 
         const { user_id, twitch_url, auto_upload } = validatedData;
+
+        // === USAGE LIMIT CHECKING ====================
+
+        // get current active streams
+        const currentActiveStreamCount = await db.select({
+            count: count(),
+        }).from(stream).
+        where(and(eq(stream.user_id, user_id), eq(stream.active, true)))
+
+        // get no. of streams in current subscription period
+        const numStreams  = await db
+            .select({ count: count() })
+            .from(stream)
+            .innerJoin(subscriptions, eq(stream.user_id, subscriptions.userId))
+            .where(and(
+            eq(stream.user_id, user_id),
+            gte(stream.created_at, subscriptions.currentPeriodStart),
+            lte(stream.created_at, subscriptions.currentPeriodEnd)
+        ));
+
+
+        // get limits based on users plan
+        const limits = await db
+            .select({
+            maxActiveStreams: plans.max_active_streams,
+            maxStreams: plans.max_streams,
+            maxTotalSecondsProcessed: plans.max_total_seconds_processed,
+            })
+            .from(subscriptions)
+            .innerJoin(plans, eq(subscriptions.priceId, plans.id))
+            .where(eq(subscriptions.userId, user_id));
+
+        
+        if (currentActiveStreamCount[0]?.count > limits[0]?.maxActiveStreams!){
+
+            return NextResponse.json(
+                {
+                    confirmation: "fail",
+                    error: "Maximum limit reached for active streams",
+                    message:
+                        "The user has reached the maximum limit for active streams for their current subscription plan"
+                },
+                { status: 422 }
+            ); // Using 422 Unprocessable Entity for this case
+        }
+
+        if (numStreams[0]?.count > limits[0]?.maxStreams! ){
+
+            return NextResponse.json(
+                {
+                    confirmation: "fail",
+                    error: "Maximum limit reached for created streams",
+                    message:
+                        "The user has reached the maximum limit for created streams for their current subscription plan"
+                },
+                { status: 422 }
+            ); // Using 422 Unprocessable Entity for this case
+        }
+
+
+        // ===  END OF USAGE LIMIT CHECKING ====================
 
         // Extract video ID from URL
         const videoId = extractVideoId(twitch_url);
