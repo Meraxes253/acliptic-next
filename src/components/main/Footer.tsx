@@ -4,7 +4,7 @@ import { Twitter, Linkedin, Facebook, Phone, Mail, Clock, Instagram, Youtube } f
 
 export default function Footer() {
   return (
-    <footer className="mt-20 sm:mt-28 lg:mt-36 px-4 sm:px-8 lg:px-16 py-8 sm:py-10 lg:py-12 bg-white text-center">
+    <footer className="mt-20 sm:mt-28 lg:mt-36 px-4 sm:px-8 lg:px-16 py-8 sm:py-10 lg:py-12 bg-gray-50 text-center">
       <h2 className="text-3xl sm:text-4xl lg:text-5xl mb-4 text-black" style={{ letterSpacing: '-0.04em', lineHeight: '92.7%' }}>
         Real-time. Nimble. Remote.
       </h2>
@@ -12,16 +12,18 @@ export default function Footer() {
         Revolutionizing live stream content: Empowering creators, amplifying engagement.
       </p>
 
-      <div className="flex justify-center items-center mb-16 sm:mb-20 lg:mb-28">
+      <div className="flex flex-col justify-center items-center mb-16 sm:mb-20 lg:mb-28">
         <Image
-          src="/AElogo2.png"
-          alt="Acliptic Logo"
-          width={120}
-          height={100}
-          className="w-24 sm:w-32 lg:w-40 h-auto"
+          src="/AELogo.svg"
+          alt="Logo"
+          width={140}
+          height={140}
           priority
           quality={100}
+          className="w-auto h-[40px] md:h-[50px] object-contain dark:invert mb-4"
         />
+
+        <h1 className='denton-condensed text-4xl font-bold'>ACLIPTIC</h1>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 lg:gap-24 mb-12 sm:mb-16 lg:mb-20 text-left">
@@ -72,7 +74,7 @@ export default function Footer() {
 
       <div className="w-full sm:w-[80%] lg:w-[60%] mx-auto h-[0.5px] bg-[#E1E2E6] mb-6 sm:mb-8"></div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6 mb-8 sm:mb-12 lg:mb-16">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6">
         <div className="text-sm text-[#535A6D]">
           © 2024 Acliptic. All rights reserved.
         </div>

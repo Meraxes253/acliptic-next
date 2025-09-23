@@ -1,8 +1,8 @@
 'use client'
 import ComparisonSection from '@/components/ComparisonSection';
-import Footer from '@/components/Footer';
+import Footer from '@/components/main/Footer';
 import LazyVideo from '@/components/LazyVideo';
-import Navigation from '@/components/mainNavigation';
+import Navigation from '@/components/main/mainNavigation';
 import ValuesSection from '@/components/ValueSection';
 import Image from 'next/image';
 import { useEffect } from 'react';

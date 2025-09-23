@@ -4,8 +4,8 @@ import FeatureBox from '@/components/FeatureBox';
 import { useEffect } from 'react';
 import Lenis from '@studio-freight/lenis';
 import LazyVideo from '@/components/LazyVideo';
-import Navigation from '@/components/mainNavigation';
-import Footer from '@/components/Footer';
+import Navigation from '@/components/main/mainNavigation';
+import Footer from '@/components/main/Footer';
 
 interface FeaturesContentProps {
   user_id: string;

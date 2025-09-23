@@ -105,8 +105,7 @@ export function FAQSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-7xl text-center mb-24"
-            style={{ letterSpacing: '-0.04em', lineHeight: '92.7%' }}
+            className="text-9xl lg:text-[12rem] font-light italic text-black tracking-wide leading-none text-center mb-24 denton-condensed"
           >
             Questions? Answers.
           </motion.h2>

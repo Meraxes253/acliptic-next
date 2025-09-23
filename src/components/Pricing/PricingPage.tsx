@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import Navigation from "@/components/mainNavigation"
+import Navigation from "@/components/main/mainNavigation"
 import Image from 'next/image'
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import Footer from '@/components/Footer'
+import Footer from '@/components/main/Footer'
 import Link from 'next/link'
 
 interface PricingPageProps{

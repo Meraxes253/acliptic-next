@@ -7,6 +7,10 @@
   font-family: var(--font-hel);
 }
 
+.denton-condensed {
+  font-family: var(--font-denton-condensed);
+}
+
 
 @layer base {
   :root {
