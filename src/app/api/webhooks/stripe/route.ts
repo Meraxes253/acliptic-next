@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
              await db.update(subscriptions) // Specify the table to update
               .set({ 
                 stripeSubscriptionId: subscription.id, 
+                stripeCustomerId: subscription.customer as string,
                 is_active: subscription.status === "active" ? true : false,
                 priceId: subscription.items.data[0]?.price.id || "",
                 total_seconds_processed : 0,
@@ -94,7 +95,7 @@ export async function POST(req: NextRequest) {
               currentPeriodEnd,
               total_seconds_processed : 0
             })
-
+ 
         }
 
           console.log(`[Webhook] Subscription saved to database with dates: ${subscription.id}`)
@@ -129,11 +130,14 @@ export async function POST(req: NextRequest) {
 
         await db.update(subscriptions) 
           .set({ 
-            is_active:  false,
-            priceId: "",
-            total_seconds_processed : 0,
-            currentPeriodStart: null,
-            currentPeriodEnd: null
+    
+            stripeSubscriptionId: 'free',
+            stripeCustomerId: null,
+            is_active: true,
+            priceId: "free",
+            currentPeriodStart : new Date(),
+            currentPeriodEnd : null,
+            total_seconds_processed : 0 // should this be reset
           
           }) // Set the new values for the columns
           .where(eq(subscriptions.id, subscription.id));

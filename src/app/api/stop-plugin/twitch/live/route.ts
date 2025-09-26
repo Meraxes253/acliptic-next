@@ -11,6 +11,13 @@ export async function POST(req: NextRequest) {
 
         const { stream_id } = await req.json();
 
+        if (!stream_id) {
+            return NextResponse.json({
+                success: false,
+                message: `Missing stream id!`
+            }, { status: 422 });
+        }
+
         // Get authenticated user using NextAuth
         const session = await auth();
         const user_id = session?.user?.id || "";
@@ -57,6 +64,7 @@ export async function POST(req: NextRequest) {
                 },
                 body: JSON.stringify({
                     "streamer_id": user_id,
+                    "stream_id": stream_id,
                     "streamer_name": username,    
                 })
             });

@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { users } from "@/db/schema/users";
-import { eq } from "drizzle-orm";
+import {  subscriptions, users} from "@/db/schema/users";
+import {  eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 
@@ -13,7 +13,23 @@ export async function POST(request: Request): Promise<NextResponse> {
         await db.update(users)
         .set({ username: username, phone_number: phone_number, onBoardingCompleted: true, youtube_channel_id: youtube_channel_id })
         .where(eq(users.id, user_id ));
+
+        // create subscription record
+
+        console.log('creating subscription record')
+          await db.insert(subscriptions).values({
+            userId: user_id,
+            stripeSubscriptionId: 'free',
+            stripeCustomerId: null,
+            is_active: true,
+            priceId: "free",
+            currentPeriodStart : new Date(),
+            currentPeriodEnd : null,
+            total_seconds_processed : 0
+        })
     
+
+
         return NextResponse.json(
             {
                 confirmation: "Success",

@@ -5,19 +5,28 @@ import { db } from "@/db";
 import {  plans, stream, subscriptions, users } from "@/db/schema/users";
 import {  sql, eq, count, and, gte, lte } from "drizzle-orm";
 
-
 export default async function () {
 
   const session = await auth();
   const user_id = session?.user?.id || "" 
- 
-  let twitch_username = ""
-  let youtube_channel_id = ""
 
 
-  if (session?.user) {
+  /*
+  // create free subscription when user onboards and when onboarding is set to true
+  await db.insert(subscriptions).values({
+    userId: user_id,
+    stripeSubscriptionId: 'free',
+    stripeCustomerId: null,
+    is_active: true,
+    priceId: "free",
+    currentPeriodStart : new Date(),
+    currentPeriodEnd : null,
+    total_seconds_processed : 0
+  })
 
-      // get current active streams
+  */
+
+        // get current active streams
       const currentActiveStreamCount = await db.select({
           count: count(),
       }).from(stream).
@@ -64,12 +73,8 @@ export default async function () {
 
       }
 
-
-  }
-
   //console.log(session)
 
-  
   return (
     <></>
   )

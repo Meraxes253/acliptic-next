@@ -346,7 +346,7 @@ export const subscriptions = pgTable("subscriptions", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: text("user_id").notNull(),
   stripeSubscriptionId: text("stripe_subscription_id").notNull().unique(),
-  stripeCustomerId: text("stripe_customer_id").notNull(),
+  stripeCustomerId: text("stripe_customer_id"),
   is_active: boolean("is_active").notNull(),
   priceId: text("price_id").notNull(),
   currentPeriodStart: timestamp("current_period_start"),
