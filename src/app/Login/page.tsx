@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { eq } from "drizzle-orm";
+import Link from "next/link"
+import Image from 'next/image'
 
 
 const LoginPage = async () => {
@@ -43,6 +45,18 @@ const LoginPage = async () => {
 
     return (
         <div>
+            <Link href='/'>
+                <Image
+                    src="/AElogo.svg"
+                    alt="Logo"
+                    width={45}
+                    height={43}
+                    className="absolute top-5 left-8"
+                    priority
+                    quality={100}
+                    sizes="100vw"
+                />
+            </Link>       
             <LoginForm />
         </div>
     );
