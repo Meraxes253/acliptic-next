@@ -157,7 +157,7 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className={`w-full px-6 py-4 bg-[linear-gradient(to_right,#C8C2C9_0%,#7F8A8F_75%,#969DA5_100%)] rounded-full text-white placeholder-gray-300 border-0 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 text-lg ${
+                  className={`w-full px-6 py-4 gradient-silver rounded-full text-white placeholder-gray-300 border-0 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 text-lg ${
                     errors.email ? "ring-2 ring-red-400" : ""
                   }`}
                 />
@@ -177,7 +177,7 @@ export default function SignupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className={`w-full px-6 py-4 bg-[linear-gradient(to_right,#C8C2C9_0%,#7F8A8F_75%,#969DA5_100%)] rounded-full text-white placeholder-gray-300 border-0 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 text-lg ${
+                  className={`w-full px-6 py-4 gradient-silver rounded-full text-white placeholder-gray-300 border-0 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 text-lg ${
                     errors.password ? "ring-2 ring-red-400" : ""
                   }`}
                 />
@@ -188,7 +188,7 @@ export default function SignupPage() {
             {/* Continue/Sign Up Button */}
             <Button
               type="submit"
-              className="w-full bg-[linear-gradient(to_right,#C8C2C9_0%,#7F8A8F_75%,#969DA5_100%)] text-white py-4 px-6 text-lg rounded-full font-medium hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] border-0"
+              className="w-full gradient-silver text-white py-4 px-6 text-lg rounded-full font-medium hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] border-0"
               disabled={loading}
             >
               {loading ? "Loading..." : "Sign Up"}
@@ -205,7 +205,7 @@ export default function SignupPage() {
           {/* Google Sign In */}
           <Button
               variant="outline"
-              className="w-full bg-[linear-gradient(to_right,#C8C2C9_0%,#7F8A8F_75%,#969DA5_100%)] rounded-full text-white border-0 hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] py-4 text-lg"
+              className="w-full gradient-silver rounded-full text-white border-0 hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] py-4 text-lg"
               onClick={handleGoogleAuth}
               disabled={loading}
             >

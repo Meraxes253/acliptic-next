@@ -189,7 +189,7 @@ function filterAndSortStreams(
 
 // Skeleton Components
 const StreamCardSkeleton = () => (
-  <div className="relative w-full rounded-3xl overflow-hidden bg-gray-800">
+  <div className="relative w-full rounded-2xl overflow-hidden bg-gray-800">
     <div className="aspect-video w-full">
       <SkeletonLoader className="w-full h-full" />
     </div>
@@ -197,29 +197,29 @@ const StreamCardSkeleton = () => (
 );
 
 const StreamsLoadingSkeleton = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7 mx-auto max-w-[1400px] mt-8 md:mt-12 mb-12 px-4">
-    {[...Array(4)].map((_, index) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mx-auto max-w-[1400px] mt-8 mb-12 px-4">
+    {[...Array(6)].map((_, index) => (
       <StreamCardSkeleton key={index} />
     ))}
   </div>
 );
 
 // Filter Component
-const FilterSection = ({ 
-  searchTerm, 
-  setSearchTerm, 
-  sortBy, 
-  setSortBy, 
-  sortOrder, 
-  setSortOrder, 
-  platformFilter, 
-  setPlatformFilter, 
-  statusFilter, 
-  setStatusFilter, 
-  dateRange, 
+const FilterSection = ({
+  searchTerm,
+  setSearchTerm,
+  sortBy,
+  setSortBy,
+  sortOrder,
+  setSortOrder,
+  platformFilter,
+  setPlatformFilter,
+  statusFilter,
+  setStatusFilter,
+  dateRange,
   setDateRange,
   isOpen,
-  setIsOpen 
+  setIsOpen
 }: {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
@@ -236,22 +236,36 @@ const FilterSection = ({
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
 }) => (
-  <div className="bg-gray-400 dark:bg-slate-900 rounded-lg p-6 mx-auto max-w-[1400px] mt-8 mb-4">
+  <div className="gradient-silver border rounded-2xl p-4 sm:p-6 mx-auto max-w-[1400px] mt-8 mb-6">
+    {/* Search Bar - Always Visible */}
+    <div className="mb-4">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
+        <Input
+          placeholder="Search streams by title..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10 bg-white text-black placeholder-gray-500 rounded-full shadow-sm"
+        />
+      </div>
+    </div>
+
+    {/* Filter Toggle */}
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
-        <Filter className="w-5 h-5 text-slate-300" />
-        <h3 className="text-lg font-medium text-white">Filters & Search</h3>
+        <Filter className="w-5 h-5 text-white" />
+        <h3 className="text-base font-medium text-white">Advanced Filters</h3>
       </div>
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
-        className="text-slate-300 hover:text-white hover:bg-slate-800"
+        className="text-white hover:text-white hover:bg-gray-800 rounded-full"
       >
         {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         {isOpen ? 'Hide' : 'Show'}
       </Button>
     </div>
-    
+
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -261,76 +275,63 @@ const FilterSection = ({
           transition={{ duration: 0.3 }}
           className="overflow-hidden"
         >
-          {/* Search Bar */}
-          <div className="mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <Input
-                placeholder="Search streams by title..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-slate-800 border-slate-600 text-white placeholder-slate-400"
-              />
-            </div>
-          </div>
-
           {/* Filter Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {/* Sort By */}
             <div>
-              <Label className="text-slate-300 text-sm font-medium mb-2 block">Sort By</Label>
+              <Label className="text-white text-sm font-medium mb-2 block">Sort By</Label>
               <Select value={sortBy} onValueChange={(value: SortBy) => setSortBy(value)}>
-                <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                <SelectTrigger className="bg-black border-gray-600 text-white rounded-full">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="date">Date Created</SelectItem>
-                  <SelectItem value="title">Title</SelectItem>
-                  <SelectItem value="clipCount">Clip Count</SelectItem>
+                <SelectContent className="bg-black border-gray-600">
+                  <SelectItem value="date" className="text-white">Date Created</SelectItem>
+                  <SelectItem value="title" className="text-white">Title</SelectItem>
+                  <SelectItem value="clipCount" className="text-white">Clip Count</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Order */}
             <div>
-              <Label className="text-slate-300 text-sm font-medium mb-2 block">Order</Label>
+              <Label className="text-white text-sm font-medium mb-2 block">Order</Label>
               <Select value={sortOrder} onValueChange={(value: SortOrder) => setSortOrder(value)}>
-                <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                <SelectTrigger className="bg-black border-gray-600 text-white rounded-full">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="desc">Newest First</SelectItem>
-                  <SelectItem value="asc">Oldest First</SelectItem>
+                <SelectContent className="bg-black border-gray-600">
+                  <SelectItem value="desc" className="text-white">Newest First</SelectItem>
+                  <SelectItem value="asc" className="text-white">Oldest First</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Platform */}
             <div>
-              <Label className="text-slate-300 text-sm font-medium mb-2 block">Platform</Label>
+              <Label className="text-white text-sm font-medium mb-2 block">Platform</Label>
               <Select value={platformFilter} onValueChange={(value: PlatformFilter) => setPlatformFilter(value)}>
-                <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                <SelectTrigger className="bg-black border-gray-600 text-white rounded-full">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="all">All Platforms</SelectItem>
-                  <SelectItem value="youtube">YouTube</SelectItem>
-                  <SelectItem value="twitch">Twitch</SelectItem>
+                <SelectContent className="bg-black border-gray-600">
+                  <SelectItem value="all" className="text-white">All Platforms</SelectItem>
+                  <SelectItem value="youtube" className="text-white">YouTube</SelectItem>
+                  <SelectItem value="twitch" className="text-white">Twitch</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Status */}
             <div>
-              <Label className="text-slate-300 text-sm font-medium mb-2 block">Status</Label>
+              <Label className="text-white text-sm font-medium mb-2 block">Status</Label>
               <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
-                <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                <SelectTrigger className="bg-black border-gray-600 text-white rounded-full">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="livestream">Livestream</SelectItem>
-                  <SelectItem value="video">Video</SelectItem>
+                <SelectContent className="bg-black border-gray-600">
+                  <SelectItem value="all" className="text-white">All Status</SelectItem>
+                  <SelectItem value="livestream" className="text-white">Livestream</SelectItem>
+                  <SelectItem value="video" className="text-white">Video</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -338,7 +339,7 @@ const FilterSection = ({
 
           {/* Date Range */}
           <div>
-            <Label className="text-slate-300 text-sm font-medium mb-2 block">Date Range</Label>
+            <Label className="text-white text-sm font-medium mb-2 block">Date Range</Label>
             <div className="flex flex-wrap gap-2">
               {[
                 { value: 'all', label: 'All Time' },
@@ -353,10 +354,10 @@ const FilterSection = ({
                   variant={dateRange === range.value ? "default" : "secondary"}
                   size="sm"
                   onClick={() => setDateRange(range.value as DateRange)}
-                  className={`${
-                    dateRange === range.value 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  className={`rounded-full ${
+                    dateRange === range.value
+                      ? 'gradient-silver text-white hover:text-white hover:opacity-90 border-0'
+                      : 'bg-black text-white hover:bg-gray-800 border border-gray-600'
                   }`}
                 >
                   {range.label}
@@ -559,44 +560,44 @@ export default function LibraryPage({user_id } : LibraryPageProps) {
         <>
           {/* Results Info */}
           <div className="mx-auto max-w-[1400px] px-4 mb-4">
-            <p className="text-slate-400 text-sm">
+            <p className="text-gray-500 text-sm">
               Showing {startIndex + 1}-{Math.min(endIndex, filteredStreams.length)} of {filteredStreams.length} streams
             </p>
           </div>
 
-          {/* Streams Grid - Modern Card Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7 mx-auto max-w-[1400px] mb-12 px-4">
+          {/* Streams Grid - Card Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mx-auto max-w-[1400px] mb-12 px-4">
             {currentStreams.map((stream: StreamData) => (
-              <Link 
-                key={stream.streamId} 
+              <Link
+                key={stream.streamId}
                 href={{
                   pathname: `/Library/stream/${stream.index}/clips`,
-                  query: { 
+                  query: {
                     autoUploaded: stream.autoUploaded,
                     id: stream.streamId
                   }
-                }} 
+                }}
                 className="block group"
               >
-                <div className="relative w-full rounded-3xl overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
+                <div className="relative w-full rounded-2xl overflow-hidden bg-black shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border border-gray-600">
                   {/* Image Container */}
                   <div className="aspect-video w-full relative">
-                    <Image 
+                    <Image
                       src={stream.thumbnail}
                       alt={stream.title}
                       fill
                       className="object-cover"
                     />
                     {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
-                    
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+
                     {/* Top Labels */}
                     <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-                      <span className="bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full font-medium">
+                      <span className="bg-black/80 backdrop-blur-sm text-white text-xs px-2.5 py-1.5 rounded-full font-medium border border-gray-600">
                         {stream.clipCount} clips
                       </span>
                       {stream.autoUploaded && (
-                        <span className="bg-emerald-600/90 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full font-medium">
+                        <span className="bg-emerald-600 text-white text-xs px-2.5 py-1.5 rounded-full font-medium">
                           Auto Uploaded
                         </span>
                       )}
@@ -604,17 +605,17 @@ export default function LibraryPage({user_id } : LibraryPageProps) {
 
                     {/* Platform Badge */}
                     <div className="absolute top-3 right-3">
-                      <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${getPlatformColor(stream.platform)}`}>
+                      <span className={`text-xs px-2.5 py-1.5 rounded-full font-medium ${getPlatformColor(stream.platform)}`}>
                         {stream.platform}
                       </span>
                     </div>
 
                     {/* Bottom Content */}
                     <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="text-white text-lg font-semibold mb-1 line-clamp-2 group-hover:text-blue-400 transition-colors">
+                      <h3 className="text-white text-base font-semibold mb-1 line-clamp-2 group-hover:text-white transition-colors">
                         {stream.title}
                       </h3>
-                      <p className="text-gray-300 text-sm flex items-center gap-2">
+                      <p className="text-gray-500 text-sm flex items-center gap-2">
                         {stream.streamTime}
                       </p>
                     </div>
@@ -640,11 +641,11 @@ export default function LibraryPage({user_id } : LibraryPageProps) {
                 variant="outline"
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="bg-slate-800 border-slate-600 text-white hover:bg-slate-700 disabled:opacity-50"
+                className="bg-black border-gray-600 text-white hover:bg-gray-800 disabled:opacity-50 rounded-full"
               >
                 Previous
               </Button>
-              
+
               <div className="flex gap-1">
                 {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
                   let page;
@@ -657,16 +658,16 @@ export default function LibraryPage({user_id } : LibraryPageProps) {
                   } else {
                     page = currentPage - 3 + i;
                   }
-                  
+
                   return (
                     <Button
                       key={page}
                       variant={currentPage === page ? "default" : "outline"}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-10 h-10 ${
+                      className={`w-10 h-10 rounded-full ${
                         currentPage === page
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'bg-slate-800 border-slate-600 text-white hover:bg-slate-700'
+                          ? 'gradient-silver text-white hover:text-white hover:opacity-90 border-0'
+                          : 'bg-black border-gray-600 text-white hover:bg-gray-800'
                       }`}
                     >
                       {page}
@@ -674,12 +675,12 @@ export default function LibraryPage({user_id } : LibraryPageProps) {
                   );
                 })}
               </div>
-              
+
               <Button
                 variant="outline"
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
-                className="bg-slate-800 border-slate-600 text-white hover:bg-slate-700 disabled:opacity-50"
+                className="bg-black border-gray-600 text-white hover:bg-gray-800 disabled:opacity-50 rounded-full"
               >
                 Next
               </Button>

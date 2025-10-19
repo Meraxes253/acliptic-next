@@ -2,18 +2,19 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { Label } from "@/components/ui/label"
+// import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+// import { Input } from "@/components/ui/input"
 import Navigation from "@/components/afterNav"
 import PluginDialog from "@/components/Studio/pluginDialog"
 import PresetDialog from "@/components/Studio/PresetDialog"
 import { LoadingScreen, SkeletonLoader } from "@/components/LoadingSkeletonScreen"
 import { toast, Toaster } from "sonner"
+import { ChevronRight, Video, Edit, Settings } from "lucide-react"
 
 // Type definitions
 interface ClipCount {
@@ -76,33 +77,27 @@ function formatStreamTime(streamDate: Date): string {
 
 // Helper function to extract clip count from various data types
 function extractClipCount(clipCount: ClipCount[] | number | null | undefined): number {
-  // Handle null or undefined
   if (!clipCount) {
     return 0
   }
 
-  // Handle if it's already a number
   if (typeof clipCount === "number") {
     return clipCount
   }
 
-  // Handle if it's an array
   if (Array.isArray(clipCount)) {
     if (clipCount.length === 0) {
       return 0
     }
-    // Sum all counts in the array
     return clipCount.reduce((total, item) => total + (item?.count || 0), 0)
   }
 
-  // Fallback
   return 0
 }
 
 function validateAndParseURL(url: string): { type: URLType; data: any } {
   const trimmedUrl = url.trim()
 
-  // YouTube video pattern: https://www.youtube.com/watch?v=VIDEO_ID
   const youtubePattern = /^https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/
   const youtubeMatch = trimmedUrl.match(youtubePattern)
 
@@ -116,7 +111,6 @@ function validateAndParseURL(url: string): { type: URLType; data: any } {
     }
   }
 
-  // Twitch live stream pattern: https://www.twitch.tv/USERNAME
   const twitchLivePattern = /^https:\/\/www\.twitch\.tv\/([a-zA-Z0-9_]+)$/
   const twitchLiveMatch = trimmedUrl.match(twitchLivePattern)
 
@@ -130,7 +124,6 @@ function validateAndParseURL(url: string): { type: URLType; data: any } {
     }
   }
 
-  // Twitch VOD pattern: https://www.twitch.tv/videos/VIDEO_ID
   const twitchVodPattern = /^https:\/\/www\.twitch\.tv\/videos\/(\d+)/
   const twitchVodMatch = trimmedUrl.match(twitchVodPattern)
 
@@ -152,7 +145,7 @@ function validateAndParseURL(url: string): { type: URLType; data: any } {
 
 // Skeleton Components
 const StreamCardSkeleton = () => (
-  <div className="w-full rounded-md p-4 flex flex-col">
+  <div className="flex-shrink-0 w-[280px] md:w-[360px] lg:w-[400px] rounded-md p-4 flex flex-col">
     <div className="mb-4">
       <SkeletonLoader className="w-32 h-8 rounded-md" />
     </div>
@@ -167,7 +160,7 @@ const StreamCardSkeleton = () => (
 )
 
 const StreamsLoadingSkeleton = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7 mx-auto max-w-[1400px] mt-8 md:mt-12 mb-12 px-4">
+  <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide mx-auto max-w-[1400px] mt-8 md:mt-12 mb-12 px-6">
     {[...Array(4)].map((_, index) => (
       <StreamCardSkeleton key={index} />
     ))}
@@ -180,7 +173,6 @@ interface StudioPageProps {
   youtube_channel_id: string
 }
 
-// Custom fetcher for POST requests used by plugin state
 const postFetcher = (url: string, user_id: string) => {
   return fetch(url, {
     method: "POST",
@@ -217,14 +209,18 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
   const [inputUrl, setInputUrl] = useState<string>("")
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
 
-  // Replace useSWR with manual state management
   const [streamsData, setStreamsData] = useState<ApiResponse | null>(null)
   const [streamsError, setStreamsError] = useState<Error | null>(null)
   const [streamsLoading, setStreamsLoading] = useState<boolean>(false)
 
-  // ActionButtons state
   const [isPluginDialogOpen, setIsPluginDialogOpen] = useState(false)
   const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false)
+
+  // Carousel drag functionality
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [startX, setStartX] = useState(0)
+  const [scrollLeft, setScrollLeft] = useState(0)
 
   // Fetch streams data once on mount
   useEffect(() => {
@@ -254,7 +250,6 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
     fetchStreamsData()
   }, [user_id])
 
-  // Fetch plugin state manually
   const fetchPluginState = async () => {
     try {
       const response = await postFetcher("/api/user/plugin_state", user_id)
@@ -312,7 +307,6 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
       }
 
       toast.dismiss(progressToastId)
-      // Clear input on successful submission
       setInputUrl("")
     } catch (error) {
       console.error("Error in handleStartClipping:", error)
@@ -328,7 +322,6 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
 
   const handlePluginButtonClickTwitchLive = async (twitchUsername: string, inputUrl: string) => {
     try {
-      // Call the API to create a stream record
       const response1 = await fetch("/api/streams/twitch/live", {
         method: "POST",
         headers: {
@@ -336,7 +329,7 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
         },
         body: JSON.stringify({
           user_id: user_id,
-          twitch_username: twitchUsername, // Use parsed username from URL
+          twitch_username: twitchUsername,
           auto_upload: true,
         }),
       })
@@ -350,7 +343,6 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
 
       const stream_id = responseData1.data.stream_id
 
-      // Call the API to launch plugin
       const response2 = await fetch("/api/launch-plugin/twitch/live", {
         method: "POST",
         headers: {
@@ -370,7 +362,6 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
         throw new Error(responseData2.message || "Failed to launch clipping plugin")
       }
 
-      // Show success toast when both API calls complete successfully
       toast.success("Twitch live clipping started successfully!", {
         description: `Started clipping for ${twitchUsername}`,
         duration: 4000,
@@ -384,13 +375,12 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
         description: err.message || "Please try again or check your connection",
         duration: 4000,
       })
-      throw error // Re-throw to be caught by handleStartClipping
+      throw error
     }
   }
 
   const handleYouTubeVideo = async (videoId: string, inputUrl: string) => {
     try {
-      // TODO: Implement YouTube video clipping API calls
       console.log("YouTube video handler called with:", { videoId, inputUrl })
 
       const response1 = await fetch("/api/streams/youtube/pre_recorded", {
@@ -400,7 +390,7 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
         },
         body: JSON.stringify({
           user_id: user_id,
-          video_url: inputUrl, // Use parsed username from URL
+          video_url: inputUrl,
           auto_upload: true,
         }),
       })
@@ -414,7 +404,6 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
 
       const stream_id = responseData1.data.stream_id
 
-      // Call the API to launch plugin
       const response2 = await fetch("/api/launch-plugin/youtube/pre_recorded", {
         method: "POST",
         headers: {
@@ -447,13 +436,12 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
         description: err.message || "Please try again or check your connection",
         duration: 4000,
       })
-      throw error // Re-throw to be caught by handleStartClipping
+      throw error
     }
   }
 
   const handleTwitchVOD = async (videoId: string, inputUrl: string) => {
     try {
-      // TODO: Implement Twitch VOD clipping API calls
       console.log("Twitch VOD handler called with:", { videoId, inputUrl })
 
       const response1 = await fetch("/api/streams/twitch/pre_recorded", {
@@ -463,7 +451,7 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
         },
         body: JSON.stringify({
           user_id: user_id,
-          twitch_url: inputUrl, // Use parsed username from URL
+          twitch_url: inputUrl,
           auto_upload: true,
         }),
       })
@@ -477,7 +465,6 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
 
       const stream_id = responseData1.data.stream_id
 
-      // Call the API to launch plugin
       const response2 = await fetch("/api/launch-plugin/twitch/pre_recorded", {
         method: "POST",
         headers: {
@@ -510,7 +497,75 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
         description: err.message || "Please try again or check your connection",
         duration: 4000,
       })
-      throw error // Re-throw to be caught by handleStartClipping
+      throw error
+    }
+  }
+
+  const handleYouTubeLiveMonitor = async (channelId: string) => {
+    const progressToastId = toast.loading("Starting YouTube live monitoring...", {
+      description: "Please wait while we start monitoring your channel",
+    })
+
+    setIsProcessing(true)
+
+    try {
+      const response1 = await fetch("/api/streams/youtube/live", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: user_id,
+          youtube_channel_id: channelId,
+          auto_upload: true,
+        }),
+      })
+
+      const responseData1 = await response1.json()
+      console.log("res 1: ", responseData1)
+
+      if (!response1.ok || responseData1.confirmation !== "success") {
+        throw new Error(responseData1.message || "Failed to create stream record")
+      }
+
+      const stream_id = responseData1.data.stream_id
+
+      const response2 = await fetch("/api/launch-plugin/youtube/live", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          auto_upload: true,
+          stream_id: stream_id,
+          youtube_channel_id: channelId,
+        }),
+      })
+
+      const responseData2 = await response2.json()
+      console.log(responseData2)
+
+      if (!response2.ok) {
+        throw new Error(responseData2.message || "Failed to launch clipping plugin")
+      }
+
+      toast.dismiss(progressToastId)
+      toast.success("YouTube live monitoring started successfully!", {
+        description: `Monitoring channel: ${channelId}`,
+        duration: 4000,
+      })
+
+      window.location.reload()
+    } catch (error) {
+      const err = error as Error
+      console.error("Error starting YouTube live monitoring:", err)
+      toast.dismiss(progressToastId)
+      toast.error("Failed to start YouTube live monitoring", {
+        description: err.message || "Please try again or check your connection",
+        duration: 4000,
+      })
+      setIsProcessing(false)
+      throw error
     }
   }
 
@@ -525,14 +580,13 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
     if (streamsData?.data) {
       const streams = streamsData.data
 
-      // Transform streams data to podcasts format
       const formattedPodcasts: Podcast[] = streams.map((stream: Stream, index: number) => ({
         streamId: stream.stream_id,
         index: index + 1,
         title: stream.stream_title || "Untitled Stream",
         thumbnail: stream.thumbnail_url || "/podcast-thumbnail.png",
         streamTime: formatStreamTime(new Date(stream?.created_at || "")),
-        clipCount: extractClipCount(stream.clipCount), // Fixed: Now handles all data types
+        clipCount: extractClipCount(stream.clipCount),
         autoUploaded: stream.auto_upload || false,
       }))
 
@@ -547,90 +601,138 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
     }
   }, [user_id])
 
-  // Show loading state while initializing
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!carouselRef.current) return
+    setIsDragging(true)
+    setStartX(e.pageX - carouselRef.current.offsetLeft)
+    setScrollLeft(carouselRef.current.scrollLeft)
+    if (carouselRef.current) {
+      carouselRef.current.style.cursor = 'grabbing'
+    }
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+    if (carouselRef.current) {
+      carouselRef.current.style.cursor = 'grab'
+    }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !carouselRef.current) return
+    e.preventDefault()
+    const x = e.pageX - carouselRef.current.offsetLeft
+    const walk = (x - startX) * 2
+    carouselRef.current.scrollLeft = scrollLeft - walk
+  }
+
+  const handleMouseLeave = () => {
+    if (isDragging) {
+      setIsDragging(false)
+      if (carouselRef.current) {
+        carouselRef.current.style.cursor = 'grab'
+      }
+    }
+  }
+
+  // Create infinite loop by tripling the array
+  const infinitePodcasts = podcasts.length > 0 ? [...podcasts, ...podcasts, ...podcasts] : []
+
+  // Handle infinite scroll
+  useEffect(() => {
+    const carousel = carouselRef.current
+    if (!carousel || podcasts.length === 0) return
+
+    const handleScroll = () => {
+      const maxScroll = carousel.scrollWidth - carousel.clientWidth
+      const currentScroll = carousel.scrollLeft
+
+      if (currentScroll >= maxScroll - 10) {
+        carousel.scrollLeft = maxScroll / 3
+      } else if (currentScroll <= 10) {
+        carousel.scrollLeft = maxScroll / 3
+      }
+    }
+
+    carousel.addEventListener('scroll', handleScroll)
+    carousel.scrollLeft = carousel.scrollWidth / 3
+
+    return () => carousel.removeEventListener('scroll', handleScroll)
+  }, [podcasts])
+
+  const handleScrollRight = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: 400, behavior: 'smooth' })
+    }
+  }
+
   if (streamsLoading && !user_id) {
     return <LoadingScreen />
   }
 
   return (
     <div>
-      <Navigation />
       <Toaster position="top-right" />
 
-      <div className="mt-2 w-full max-w-[1400px] mx-auto px-4">
-        <div className="w-full h-[250px] rounded-md overflow-hidden relative">
-          <Image
-            src="/newDash2.png"
-            alt="Studio background"
-            fill
-            className="object-cover rounded-md z-0"
-            priority={true}
-          />
-          <div className="w-full h-full flex flex-col justify-between relative z-10">
-            <div className="flex-1 p-8 flex items-start">
-              <h1 className="text-3xl sm:text-5xl text-black" style={{ letterSpacing: "-0.04em", lineHeight: "92.7%" }}>
-                What are you streaming <br /> today?
-              </h1>
-            </div>
-            <div className="w-full px-8 pb-8 flex justify-between items-end">
-              <div className="flex-1"></div>
-              <div className="flex justify-end w-full max-w-[1400px]">
-                <div className="flex flex-col sm:flex-row justify-between w-full max-w-[1400px] gap-4">
-                  <div className="flex justify-start flex-1">
-                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:max-w-[500px]">
-                      <Input
-                        type="url"
-                        placeholder="Enter YouTube video, Twitch live, or Twitch VOD URL..."
-                        value={inputUrl}
-                        onChange={(e) => setInputUrl(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        className="h-[42px] rounded-[12px] border-2 border-gray-300 focus:border-emerald-500 transition-colors duration-200 bg-white"
-                        disabled={isProcessing}
-                      />
-                      <Button
-                        className="h-[42px] w-full sm:w-[140px] rounded-[12px] flex justify-center items-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border-2 hover:text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 border-emerald-500 text-white shadow-emerald-500/30"
-                        variant="ghost"
-                        onClick={handleStartClipping}
+      <div className="mt-6 w-full max-w-[1400px] mx-auto flex flex-col items-center">
+        <h1 className="text-[182px] text-black denton-condensed leading-none">
+          Start Clipping
+        </h1>
+        <div className="w-full rounded-3xl overflow-hidden relative gradient-silver" style={{ maxWidth: '897px', height: '129px' }}> 
+          <div className="w-full h-full flex flex-col relative z-10 px-8 py-6 justify-between">
+                                          
+                {/* Input field with edit icon */}
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    value={inputUrl}
+                    onChange={(e) => setInputUrl(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Drop the link to the video or drag the video or upload it"
+                    className="flex-1 bg-transparent border-none outline-none text-white placeholder-white/60 text-base px-2"
+                    disabled={isProcessing}
+                  />
+                </div>
+
+                {/* Bottom row with category buttons and launch button */}
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-3 items-center">
+                    <button
+                      onClick={() => setIsPresetDialogOpen(true)}
+                      className="w-10 h-10 rounded-full bg-transparent border border-white/60 backdrop-blur-sm text-white hover:bg-white/20 transition-colors flex items-center justify-center"
+                      aria-label="Open presets"
+                    >
+                      <Settings className="w-5 h-5" />
+                    </button>
+                    {twitch_username && (
+                      <button
+                        onClick={() => handlePluginButtonClickTwitchLive(twitch_username, `https://www.twitch.tv/${twitch_username}`)}
+                        className="px-6 py-2 rounded-full bg-transparent border border-white/60 backdrop-blur-sm text-white text-sm font-medium hover:bg-[#8956FB] hover:border-[#8956FB] transition-colors whitespace-nowrap"
                         disabled={isProcessing}
                       >
-                        <div className="flex items-center gap-2">
-                          {isProcessing ? (
-                            <>
-                              <div className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse"></div>
-                              <p className="text-[14px] font-semibold tracking-wide">PROCESSING...</p>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-2 h-2 bg-emerald-300 rounded-full"></div>
-                              <p className="text-[14px] font-semibold tracking-wide">START CLIPPING</p>
-                            </>
-                          )}
-                        </div>
-                      </Button>
-                    </div>
+                        Monitor: {twitch_username}
+                      </button>
+                    )}
+                    {youtube_channel_id && (
+                      <button
+                        onClick={() => handleYouTubeLiveMonitor(youtube_channel_id)}
+                        className="px-6 py-2 rounded-full bg-transparent border border-white/60 backdrop-blur-sm text-white text-sm font-medium hover:bg-[#FF0000] hover:border-[#FF0000] transition-colors whitespace-nowrap"
+                        disabled={isProcessing}
+                      >
+                        Monitor: {youtube_channel_id}
+                      </button>
+                    )}
                   </div>
-                  <div className="flex justify-end">
-                    <Button
-                      className="h-[42px] w-full sm:w-[140px] rounded-[12px] flex justify-center items-center bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 border-2 border-gray-600 text-white hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 shadow-gray-500/20"
-                      variant="ghost"
-                      onClick={() => setIsPresetDialogOpen(true)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
-                          />
-                        </svg>
-                        <p className="text-[14px] font-semibold tracking-wide">PRESETS</p>
-                      </div>
-                    </Button>
-                  </div>
+
+                  <Button
+                    className="px-8 py-2.5 rounded-full bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100 transition-colors whitespace-nowrap"
+                    onClick={handleStartClipping}
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? 'Processing...' : 'Launch'}
+                  </Button>
                 </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -638,50 +740,87 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
       {streamsLoading ? (
         <StreamsLoadingSkeleton />
       ) : streamsError ? (
-        <div className="text-center py-10 hel-font">Failed to load streams. Please try again.</div>
+        <div className="text-center py-10">Failed to load streams. Please try again.</div>
       ) : podcasts.length === 0 ? (
-        <div className="text-center py-10 hel-font">No streams found. Start streaming to see your content here!</div>
+        <div className="text-center py-10">No streams found. Start streaming to see your content here!</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7 mx-auto max-w-[1400px] mt-8 md:mt-12 mb-12 px-4">
-          {podcasts.map((podcast: Podcast, podcastIndex: number) => (
-            <Link
-              key={podcastIndex}
-              href={{
-                pathname: `/Studio/stream/${podcast.streamId}/clips`,
-              }}
-              className="block w-full"
+        <div className="w-full max-w-[1400px] mx-auto px-6 mt-12 md:mt-16 mb-12">
+          <div className="flex items-end justify-between mb-6 md:mb-8 gap-4">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl text-gray-900 flex-shrink-0 denton-condensed leading-none">
+              Recent Library
+            </h2>
+          </div>
+
+          <div className="relative flex items-center gap-4">
+            <div 
+              ref={carouselRef}
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4 flex-1 cursor-grab select-none"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              <div className="w-full rounded-md p-4 flex flex-col">
-                {podcast.autoUploaded && (
-                  <div className="mb-4">
-                    <Label className="inline-block bg-black text-white px-6 py-3 dark:bg-gray-800 rounded hel-font">
-                      Auto Uploaded
-                    </Label>
+              {infinitePodcasts.map((podcast: Podcast, podcastIndex: number) => (
+                <Link
+                  key={`${podcast.streamId}-${podcastIndex}`}
+                  href={{
+                    pathname: `/Studio/stream/${podcast.streamId}/clips`,
+                  }}
+                  className="flex-shrink-0 w-[280px] md:w-[360px] lg:w-[400px] block group"
+                  onDragStart={(e) => e.preventDefault()}
+                >
+                  <div className="relative w-full rounded-2xl overflow-hidden bg-black shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border border-gray-600">
+                    {/* Image Container */}
+                    <div className="aspect-video w-full relative">
+                      <Image
+                        src={podcast.thumbnail || "/placeholder.svg"}
+                        alt={podcast.title}
+                        fill
+                        className="object-cover"
+                        draggable="false"
+                      />
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+
+                      {/* Top Labels */}
+                      <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+                        <span className="bg-black/80 backdrop-blur-sm text-white text-xs px-2.5 py-1.5 rounded-full font-medium border border-gray-600">
+                          {podcast.clipCount} clips
+                        </span>
+                        {podcast.autoUploaded && (
+                          <span className="bg-emerald-600 text-white text-xs px-2.5 py-1.5 rounded-full font-medium">
+                            Auto Uploaded
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Bottom Content */}
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <h3 className="text-white text-base font-semibold mb-1 line-clamp-2 group-hover:text-white transition-colors">
+                          {podcast.title}
+                        </h3>
+                        <p className="text-gray-500 text-sm flex items-center gap-2">
+                          {podcast.streamTime}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                )}
-                <div className="w-full aspect-video relative rounded-md overflow-hidden">
-                  <Image
-                    src={podcast.thumbnail || "/placeholder.svg"}
-                    alt="Podcast thumbnail"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="mt-6 flex flex-col gap-2">
-                  <h2 className="text-lg md:text-2xl truncate">{podcast.title}</h2>
-                  <p className="text-gray-600 text-base hel-font flex items-center gap-2">
-                    <span>{podcast.streamTime}</span>
-                    <span>•</span>
-                    <span>{podcast.clipCount} clips</span>
-                  </p>
-                </div>
-              </div>
-            </Link>
-          ))}
+                </Link>
+              ))}
+            </div>
+
+            <button 
+              onClick={handleScrollRight}
+              className="flex-shrink-0 w-12 h-12 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors mb-20 gradient-silver"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-6 h-6 text-gray-700" />
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Dialog components */}
       <PluginDialog
         user_id={user_id}
         twitch_username={twitch_username}
@@ -690,6 +829,12 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
         onOpenChange={setIsPluginDialogOpen}
       />
       <PresetDialog user_id={user_id} isOpen={isPresetDialogOpen} onOpenChange={setIsPresetDialogOpen} />
+
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   )
 }

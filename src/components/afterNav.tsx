@@ -6,15 +6,16 @@ import { useRouter } from 'next/navigation';
 import { gsap } from "gsap";
 import { SignOutAction } from '@/actions/SignOutAction';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
+import ProfileDropdown from '@/components/Profile/ProfileDropdown';
 
 const navItems = [
   { 
-    name: 'DASHBOARD', 
-    path: '/Dashboard', 
+    name: 'LIBRARY', 
+    path: '/Library', 
     width: 470, 
     height: 80, 
-    imgSrc: '/DASHBOARD4.svg',
-    icon: '📊'
+    imgSrc: '',
+    icon: '📚'
   },
   { 
     name: 'STUDIO', 
@@ -23,14 +24,6 @@ const navItems = [
     height: 80, 
     imgSrc: '/STUDIO2.svg',
     icon: '🎨'
-  },
-  { 
-    name: 'PROFILE', 
-    path: '/Profile', 
-    width: 250, 
-    height: 80, 
-    imgSrc: '/PROFILE.svg',
-    icon: '👤'
   },
 ];
 
@@ -41,7 +34,11 @@ const additionalMenuItems = [
   { name: 'FXX', path: '/FXX', icon: '🔥' },
 ];
 
-export default function Navigation() {
+interface NavigationProps {
+  user?: any;
+}
+
+export default function Navigation({ user }: NavigationProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -55,25 +52,47 @@ export default function Navigation() {
   const tabRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
   const getCurrentPath = () => {
-    return currentPath || 'DASHBOARD';
+    return currentPath || 'LIBRARY';
+  };
+
+  // Helper function to determine if a path matches a nav item
+  const isPathActive = (itemName: string, pathname: string) => {
+    const upperName = itemName.toUpperCase();
+    const upperPath = pathname.toUpperCase();
+
+    // Direct match
+    if (upperPath.startsWith(`/${upperName}`)) {
+      return true;
+    }
+
+    // Check for Library-related paths (clips pages from Library)
+    if (upperName === 'LIBRARY' && upperPath.includes('/LIBRARY/')) {
+      return true;
+    }
+
+    return false;
   };
 
   useEffect(() => {
     // Set the current path immediately without any delay
-    const path = window.location.pathname.slice(1).toUpperCase() || 'DASHBOARD';
+    const pathname = window.location.pathname;
+    const matchedItem = navItems.find(item => isPathActive(item.name, pathname));
+    const path = matchedItem ? matchedItem.name.toUpperCase() : pathname.slice(1).toUpperCase() || 'LIBRARY';
     setCurrentPath(path);
   }, []);
 
   // Listen for route changes to update currentPath
   useEffect(() => {
     const handleRouteChange = () => {
-      const path = window.location.pathname.slice(1).toUpperCase() || 'DASHBOARD';
+      const pathname = window.location.pathname;
+      const matchedItem = navItems.find(item => isPathActive(item.name, pathname));
+      const path = matchedItem ? matchedItem.name.toUpperCase() : pathname.slice(1).toUpperCase() || 'LIBRARY';
       setCurrentPath(path);
     };
 
     // Listen for popstate events (back/forward navigation)
     window.addEventListener('popstate', handleRouteChange);
-    
+
     return () => {
       window.removeEventListener('popstate', handleRouteChange);
     };
@@ -163,52 +182,14 @@ export default function Navigation() {
       {/* Main Navigation Bar */}
       <nav 
         ref={navRef}
-        className={`fixed w-full grid grid-cols-3 items-center py-3 px-4 md:py-4 md:px-6 lg:py-5 lg:px-8
+        className={`fixed w-full flex items-center justify-between py-3 px-4 md:py-4 md:px-6 lg:py-5 lg:px-8
           transition-all duration-300 ease-out z-40 bg-white dark:bg-gray-900
           ${isVisible ? 'translate-y-0' : '-translate-y-full'}
           border-b border-gray-100 dark:border-gray-800`}
-        style={{ willChange: 'transform, background-color, box-shadow' }}
+        style={{ willChange: 'transform' }}
       >
-        {/* Left section - Hamburger menu for mobile/tablet, tabs for desktop */}
-        <div className="flex items-center space-x-2 justify-start relative">
-          {/* Mobile/Tablet hamburger menu (now visible up to lg screens) */}
-          <button 
-            onClick={toggleMenu} 
-            className="flex items-center space-x-2 group hamburger-button lg:hidden"
-            aria-label="Menu toggle"
-          >
-            <div className="hamburger-menu cursor-pointer">
-              <div className="w-7 h-[1px] bg-black dark:bg-white mb-1 hamburger-line top-line"></div>
-              <div className="w-7 h-[1px] bg-black dark:bg-white hamburger-line bottom-line"></div>
-            </div>
-            <span className="text-sm font-light tracking-wide hidden sm:inline dark:text-white">
-              {getCurrentPath()}
-            </span>
-          </button>
-
-          {/* Desktop navigation tabs (visible on lg screens and above) */}
-          <div className="hidden lg:flex items-center space-x-2 relative">
-            {navItems.map((item, index) => (
-              <Link 
-                href={item.path} 
-                key={item.name}
-                className={`relative text-base tracking-wide transition-all duration-300 px-6 py-3 rounded-lg
-                  ${currentPath && currentPath === item.name.toUpperCase() 
-                    ? 'text-black dark:text-white active-tab-shadow bg-gray-400 dark:bg-gray-800 shadow-lg' 
-                    : 'text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-400 dark:hover:bg-gray-800'
-                  }`}
-                ref={(el: HTMLAnchorElement | null) => {
-                  if (el) tabRefs.current[index] = el;
-                }}
-              >
-                <span className="relative z-10">{item.name}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Center logo */}
-        <div className="flex justify-center">
+        {/* Left section - Logo */}
+        <div className="flex items-center">
           <Link href="/" className="flex items-center group">
             <Image
               src="/AELogo.svg"
@@ -222,26 +203,51 @@ export default function Navigation() {
           </Link>
         </div>
 
-        {/* Right section with dark mode toggle and logout */}
-        <div className="flex items-center space-x-4 justify-end">
-          <DarkModeToggle />
+        {/* Center section - Navigation Items (Desktop only) */}
+        <div className="hidden lg:flex items-center space-x-8">
+          {navItems.map((item, index) => (
+            <div key={item.name} className="flex items-center">
+              <Link
+                href={item.path}
+                className={`relative text-xl font-semibold tracking-wide transition-all duration-300 px-6 py-3 group denton-condensed
+                  ${currentPath && currentPath === item.name.toUpperCase()
+                    ? 'text-black dark:text-white'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white'
+                  }`}
+              >
+                <span className="relative z-10">{item.name}</span>
+                {/* Animated underline */}
+                <span
+                  className={`absolute bottom-0 left-0 h-[3px] bg-gradient-to-r from-gray-600 via-gray-800 to-gray-600 dark:from-gray-400 dark:via-gray-200 dark:to-gray-400 transition-all duration-300 ease-out
+                    ${currentPath && currentPath === item.name.toUpperCase()
+                      ? 'w-full'
+                      : 'w-0 group-hover:w-full'
+                    }`}
+                />
+              </Link>
+              {index < navItems.length - 1 && (
+                <div className="ml-8 w-1 h-1 bg-gray-600 dark:bg-gray-400 rounded-full"></div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Right section - Profile and Mobile Menu */}
+        <div className="flex items-center space-x-4">
+          {/* Mobile hamburger menu */}
           <button 
-            type="submit"
-            className="text-black hover:text-gray-800 dark:text-white dark:hover:text-gray-300 transition-all duration-300 p-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-800 hover:scale-110"
-            onClick={(e) => {
-              e.preventDefault();
-              handleManualLogout();
-            }}
-            aria-label="Logout"
+            onClick={toggleMenu} 
+            className="lg:hidden flex items-center space-x-2 group hamburger-button"
+            aria-label="Menu toggle"
           >
-            <Image
-              src="/logout2.svg"
-              alt="Logout"
-              width={24}
-              height={24}
-              className="w-6 h-6 md:w-8 md:h-8 dark:invert"
-            />
+            <div className="hamburger-menu cursor-pointer">
+              <div className="w-7 h-[1px] bg-black dark:bg-white mb-1 hamburger-line top-line"></div>
+              <div className="w-7 h-[1px] bg-black dark:bg-white hamburger-line bottom-line"></div>
+            </div>
           </button>
+
+          {/* Profile Dropdown */}
+          <ProfileDropdown user={user}/>
         </div>
       </nav>
 
@@ -252,7 +258,7 @@ export default function Navigation() {
         style={{ 
           visibility: 'hidden', 
           pointerEvents: 'none',
-          top: '70px' // Adjust based on navbar height
+          top: '72px'
         }}
       >
         {/* Thin horizontal separator line */}
@@ -268,7 +274,7 @@ export default function Navigation() {
                   key={item.name}
                   href={item.path}
                   onClick={closeMenu}
-                  className="group flex items-center space-x-4 p-4 rounded-xl transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:shadow-md hover:scale-[1.02] border border-gray-100 dark:border-gray-700"
+                  className="group flex items-center space-x-4 p-4 rounded-xl transition-all duration-300 dark:hover:bg-gray-800/50 hover:shadow-md hover:scale-[1.02] border border-gray-800 dark:border-gray-700"
                 >
                   <div className="text-2xl group-hover:scale-110 transition-transform duration-300">
                     {item.icon}
@@ -301,7 +307,7 @@ export default function Navigation() {
                     key={item.name}
                     href={item.path}
                     onClick={closeMenu}
-                    className="group flex flex-col items-center space-y-2 p-4 rounded-lg transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:shadow-md hover:scale-[1.02] border border-gray-100 dark:border-gray-700"
+                    className="group flex flex-col items-center space-y-2 p-4 rounded-lg transition-all duration-300 dark:hover:bg-gray-800/50 hover:shadow-md hover:scale-[1.02] border border-gray-800 dark:border-gray-700"
                   >
                     <div className="text-xl group-hover:scale-110 transition-transform duration-300">
                       {item.icon}
@@ -330,37 +336,30 @@ export default function Navigation() {
       {/* Enhanced Styles */}
       <style jsx>{`
         nav {
-          background-color: rgb(210, 215, 201);
+          background-color: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        .active-tab-shadow {
-          background-color: rgb(243, 244, 246) !important;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-        }
-        
-        :global(.dark) .active-tab-shadow {
-          background-color: rgb(31, 41, 55) !important;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
-        }
-        
+
         .hamburger-menu {
           padding: 4px;
           transition: transform 0.3s ease;
         }
-        
+
         .hamburger-line {
           transition: all 0.3s ease;
         }
-        
+
         .hamburger-button:hover .hamburger-menu {
           transform: scale(1.1);
         }
-        
+
         .hamburger-button:hover .top-line {
           transform: translateY(-2px) rotate(2deg);
           margin-bottom: 5px;
         }
-        
+
         .hamburger-button:hover .bottom-line {
           transform: translateY(2px) rotate(-2deg);
         }
@@ -370,7 +369,7 @@ export default function Navigation() {
             top: 70px;
           }
         }
-        
+
         @media (min-width: 769px) and (max-width: 1023px) {
           .dropdown-menu {
             top: 86px;

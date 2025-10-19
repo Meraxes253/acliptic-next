@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Navigation from "@/components/afterNav";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -276,11 +275,10 @@ export default function ProfilePage(
   
   return (
     <div>
-      <Navigation />
       <Toaster position="top-right" />
 
       <div className="w-full max-w-[1150px] mx-auto px-4 mb-16">
-        <div className="h-[250px] rounded-md overflow-hidden border border-gray-800 dark:border-gray-700">
+        <div className="h-[250px] rounded-md overflow-hidden border">
           <div className="w-full h-full relative">
             <Image
               src="/profilebg2.jpg"
