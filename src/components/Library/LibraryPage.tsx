@@ -189,9 +189,30 @@ function filterAndSortStreams(
 
 // Skeleton Components
 const StreamCardSkeleton = () => (
-  <div className="relative w-full rounded-2xl overflow-hidden bg-gray-800">
-    <div className="aspect-video w-full">
+  <div className="relative w-full rounded-2xl overflow-hidden bg-black shadow-lg border border-gray-600">
+    {/* Image Container */}
+    <div className="aspect-video w-full relative">
       <SkeletonLoader className="w-full h-full" />
+
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+
+      {/* Top Labels */}
+      <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+        <SkeletonLoader className="w-16 h-6 rounded-full" />
+        <SkeletonLoader className="w-24 h-6 rounded-full" />
+      </div>
+
+      {/* Platform Badge */}
+      <div className="absolute top-3 right-3">
+        <SkeletonLoader className="w-16 h-6 rounded-full" />
+      </div>
+
+      {/* Bottom Content */}
+      <div className="absolute bottom-0 left-0 right-0 p-4">
+        <SkeletonLoader className="w-3/4 h-5 rounded mb-2" />
+        <SkeletonLoader className="w-1/2 h-4 rounded" />
+      </div>
     </div>
   </div>
 );
@@ -519,8 +540,8 @@ export default function LibraryPage({user_id } : LibraryPageProps) {
       <Toaster position="top-right" />
       
       {/* Header */}
-      <div className="px-4 pt-8 pb-4">
-        <h1 className="text-4xl md:text-5xl font-serif italic text-white mx-auto max-w-[1400px]">
+      <div className="px-4 pt-16 pb-4">
+        <h1 className="text-7xl denton-condensed mx-auto max-w-[1400px]">
           Complete Library
         </h1>
       </div>

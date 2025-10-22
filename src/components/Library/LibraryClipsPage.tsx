@@ -37,14 +37,27 @@ interface LibraryClipsPageComponentProps {
 // Skeleton Components
 const ClipCardSkeleton = () => (
     <div className="w-[236px]">
-        <div className="relative rounded-3xl overflow-hidden bg-gray-800 w-[236px] h-[431px]">
+        {/* Video Container */}
+        <div className="relative rounded-3xl overflow-hidden bg-gray-900 w-[236px] h-[431px]">
             <SkeletonLoader className="w-full h-full" />
+
+            {/* Duration Badge */}
+            <div className="absolute top-3 right-3">
+                <SkeletonLoader className="w-16 h-6 rounded-full" />
+            </div>
+
+            {/* Title Overlay */}
+            <div className="absolute bottom-3 left-3 right-3">
+                <SkeletonLoader className="w-full h-16 rounded-2xl" />
+            </div>
         </div>
-        <div className="mt-4 flex items-start gap-3">
-            <SkeletonLoader className="w-12 h-12 flex-shrink-0" />
+
+        {/* Virality Score & Description */}
+        <div className="mt-4 flex items-start gap-3 w-[236px]">
+            <SkeletonLoader className="w-12 h-12 flex-shrink-0 rounded" />
             <div className="flex-1 pt-1 space-y-2">
-                <SkeletonLoader className="h-4 w-full" />
-                <SkeletonLoader className="h-4 w-3/4" />
+                <SkeletonLoader className="h-4 w-full rounded" />
+                <SkeletonLoader className="h-4 w-3/4 rounded" />
             </div>
         </div>
     </div>

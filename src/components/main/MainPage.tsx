@@ -54,10 +54,14 @@ export default function MainPage({user_id}: HomePageProps) {
       <StreamingHeroSection />
 
       {/* How It Works Component */}
-      <HowItWorksComponent  />
-      
+      <div id="how-it-works">
+        <HowItWorksComponent  />
+      </div>
+
       {/* Interactive Demo Component */}
-      <InteractiveDemoComponent />
+      <div id="interactive-demo">
+        <InteractiveDemoComponent />
+      </div>
 
       {/* Clip Live Component */}
       <ClipLive />
@@ -69,7 +73,9 @@ export default function MainPage({user_id}: HomePageProps) {
       <MultipleLanguages />
 
       {/* Pricing Plans Component */}
-      <PricingPlans />
+      <div id="pricing-plans">
+        <PricingPlans />
+      </div>
 
 
       <div className='mt-20 lg:mt-[180px] px-6 md:px-24 lg:px-44 bg-gray-50'>

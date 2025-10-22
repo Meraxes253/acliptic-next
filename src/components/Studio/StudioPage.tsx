@@ -145,25 +145,50 @@ function validateAndParseURL(url: string): { type: URLType; data: any } {
 
 // Skeleton Components
 const StreamCardSkeleton = () => (
-  <div className="flex-shrink-0 w-[280px] md:w-[360px] lg:w-[400px] rounded-md p-4 flex flex-col">
-    <div className="mb-4">
-      <SkeletonLoader className="w-32 h-8 rounded-md" />
-    </div>
-    <div className="w-full aspect-video relative rounded-md overflow-hidden">
-      <SkeletonLoader className="w-full h-full" />
-    </div>
-    <div className="mt-6 flex flex-col gap-2">
-      <SkeletonLoader className="w-3/4 h-6 rounded" />
-      <SkeletonLoader className="w-1/2 h-4 rounded" />
+  <div className="flex-shrink-0 w-[280px] md:w-[360px] lg:w-[400px] block">
+    <div className="relative w-full rounded-2xl overflow-hidden bg-black shadow-lg border border-gray-600">
+      {/* Image Container */}
+      <div className="aspect-video w-full relative">
+        <SkeletonLoader className="w-full h-full" />
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+
+        {/* Top Labels */}
+        <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+          <SkeletonLoader className="w-16 h-6 rounded-full" />
+          <SkeletonLoader className="w-24 h-6 rounded-full" />
+        </div>
+
+        {/* Bottom Content */}
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <SkeletonLoader className="w-3/4 h-5 rounded mb-2" />
+          <SkeletonLoader className="w-1/2 h-4 rounded" />
+        </div>
+      </div>
     </div>
   </div>
 )
 
 const StreamsLoadingSkeleton = () => (
-  <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide mx-auto max-w-[1400px] mt-8 md:mt-12 mb-12 px-6">
-    {[...Array(4)].map((_, index) => (
-      <StreamCardSkeleton key={index} />
-    ))}
+  <div className="w-full max-w-[1400px] mx-auto px-6 mt-12 md:mt-16 mb-12">
+    <div className="flex items-end justify-between mb-6 md:mb-8 gap-4">
+      <h2 className="text-4xl md:text-5xl lg:text-6xl flex-shrink-0 denton-condensed leading-none">
+        Recent Library
+      </h2>
+    </div>
+
+    <div className="relative flex items-center gap-4">
+      <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-4 flex-1">
+        {[...Array(4)].map((_, index) => (
+          <StreamCardSkeleton key={index} />
+        ))}
+      </div>
+
+      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-20 gradient-silver">
+        <SkeletonLoader className="w-6 h-6" />
+      </div>
+    </div>
   </div>
 )
 
@@ -636,38 +661,19 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
     }
   }
 
-  // Create infinite loop by tripling the array
-  const infinitePodcasts = podcasts.length > 0 ? [...podcasts, ...podcasts, ...podcasts] : []
-
-  // Handle infinite scroll
-  useEffect(() => {
-    const carousel = carouselRef.current
-    if (!carousel || podcasts.length === 0) return
-
-    const handleScroll = () => {
-      const maxScroll = carousel.scrollWidth - carousel.clientWidth
-      const currentScroll = carousel.scrollLeft
-
-      if (currentScroll >= maxScroll - 10) {
-        carousel.scrollLeft = maxScroll / 3
-      } else if (currentScroll <= 10) {
-        carousel.scrollLeft = maxScroll / 3
-      }
-    }
-
-    carousel.addEventListener('scroll', handleScroll)
-    carousel.scrollLeft = carousel.scrollWidth / 3
-
-    return () => carousel.removeEventListener('scroll', handleScroll)
-  }, [podcasts])
-
   const handleScrollRight = () => {
     if (carouselRef.current) {
       carouselRef.current.scrollBy({ left: 400, behavior: 'smooth' })
     }
   }
 
-  if (streamsLoading && !user_id) {
+  const handleScrollLeft = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: -400, behavior: 'smooth' })
+    }
+  }
+
+  if (!user_id) {
     return <LoadingScreen />
   }
 
@@ -675,7 +681,7 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
     <div>
       <Toaster position="top-right" />
 
-      <div className="mt-6 w-full max-w-[1400px] mx-auto flex flex-col items-center">
+      <div className="mt-16 w-full max-w-[1400px] mx-auto flex flex-col items-center">
         <h1 className="text-[182px] text-black denton-condensed leading-none">
           Start Clipping
         </h1>
@@ -746,22 +752,30 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
       ) : (
         <div className="w-full max-w-[1400px] mx-auto px-6 mt-12 md:mt-16 mb-12">
           <div className="flex items-end justify-between mb-6 md:mb-8 gap-4">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl text-gray-900 flex-shrink-0 denton-condensed leading-none">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl flex-shrink-0 denton-condensed leading-none">
               Recent Library
             </h2>
           </div>
 
           <div className="relative flex items-center gap-4">
-            <div 
+            <button
+              onClick={handleScrollLeft}
+              className="flex-shrink-0 w-12 h-12 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors mb-20 gradient-silver"
+              aria-label="Scroll left"
+            >
+              <ChevronRight className="w-6 h-6 text-gray-700 rotate-180" />
+            </button>
+
+            <div
               ref={carouselRef}
               onMouseDown={handleMouseDown}
               onMouseUp={handleMouseUp}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4 flex-1 cursor-grab select-none"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-4 flex-1 cursor-grab select-none"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', scrollBehavior: 'smooth' }}
             >
-              {infinitePodcasts.map((podcast: Podcast, podcastIndex: number) => (
+              {podcasts.map((podcast: Podcast, podcastIndex: number) => (
                 <Link
                   key={`${podcast.streamId}-${podcastIndex}`}
                   href={{

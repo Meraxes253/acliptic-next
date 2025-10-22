@@ -117,7 +117,7 @@ const InteractiveDemo: React.FC = () => {
                     onClick={() => handleToggle(toggle.id)}
                     className={`relative w-12 h-6 rounded-full transition-all duration-300 ${
                       toggle.enabled
-                        ? 'bg-gradient-to-r from-[#95A2B1] to-[#68787F] to-[#828282]'
+                        ? 'gradient-silver'
                         : 'bg-gray-600'
                     }`}
                   >

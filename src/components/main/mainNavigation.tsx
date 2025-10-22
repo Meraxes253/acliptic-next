@@ -68,7 +68,7 @@ export default function Navigation({ user_id, onSignOut }: NavigationProps) {
                 <div key={link.id} className="flex items-center">
                   <button
                     onClick={link.action}
-                    className="text-lg font-medium transition-colors relative text-gray-600 hover:text-black dark:hover:text-white cursor-pointer"
+                    className="text-3xl transition-colors relative dark:hover:text-white cursor-pointer denton-condensed font-medium"
                   >
                     {link.label}
                   </button>
@@ -82,20 +82,12 @@ export default function Navigation({ user_id, onSignOut }: NavigationProps) {
             {/* Desktop Auth Buttons */}
             <div className="hidden md:flex items-center space-x-4">
               {user_id ? (
-                <div className="flex items-center space-x-4">
-                  <Link
-                    href="/Studio"
-                    className="text-base font-medium text-gray-600 hover:text-black dark:hover:text-white transition-colors"
-                  >
-                    Studio
-                  </Link>
-                  <button
-                    onClick={onSignOut}
-                    className="text-base font-medium text-gray-600 hover:text-black dark:hover:text-white transition-colors"
-                  >
-                    Sign Out
-                  </button>
-                </div>
+                <Link
+                  href="/Studio"
+                  className="bg-black text-white px-5 py-2.5 rounded-full text-base font-medium hover:bg-gray-800 transition-all duration-200 transform hover:scale-105"
+                >
+                  Studio
+                </Link>
               ) : (
                 <>
                   <Link
@@ -154,24 +146,13 @@ export default function Navigation({ user_id, onSignOut }: NavigationProps) {
             
             <div className="pt-4 border-t border-gray-100 space-y-4">
               {user_id ? (
-                <>
-                  <Link 
-                    href="/Studio" 
-                    className="block text-base font-medium text-gray-600 hover:text-black transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Studio
-                  </Link>
-                  <button 
-                    onClick={() => {
-                      onSignOut?.();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="block text-base font-medium text-gray-600 hover:text-black transition-colors"
-                  >
-                    Sign Out
-                  </button>
-                </>
+                <Link
+                  href="/Studio"
+                  className="block bg-black text-white px-4 py-2 rounded-full text-base font-medium text-center hover:bg-gray-800 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Studio
+                </Link>
               ) : (
                 <>
                   <Link 
