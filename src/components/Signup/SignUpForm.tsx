@@ -17,7 +17,6 @@ export default function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const [step, setStep] = useState("email")
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const router = useRouter()
 
@@ -51,20 +50,6 @@ export default function SignupPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (step === "email") {
-      // Validate email before proceeding to password step
-      try {
-        signInSchema.shape.email.parse(email)
-        setStep("password")
-      } catch (error) {
-        if (error instanceof ZodError) {
-          setErrors({ email: error.errors[0].message })
-          toast.error(error.errors[0].message)
-        }
-      }
-      return
-    }
 
     // Validate full form before submission
     try {

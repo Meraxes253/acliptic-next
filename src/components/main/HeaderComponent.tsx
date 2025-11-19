@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const StreamingHeroSection = () => {
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [animationComplete, setAnimationComplete] = useState(false);
 
@@ -269,7 +271,10 @@ const StreamingHeroSection = () => {
                     <span className="text-[13px] font-medium">Link your twitch account and start clipping</span>
                   </div>
                   <div className="relative">
-                    <button className="bg-white text-black px-5 py-2 rounded-full text-[13px] font-medium transition-all whitespace-nowrap ml-3 relative z-10 hover:scale-105 transform">
+                    <button
+                      onClick={() => router.push('/Studio')}
+                      className="bg-white text-black px-5 py-2 rounded-full text-[13px] font-medium transition-all whitespace-nowrap ml-3 relative z-10 hover:scale-105 transform"
+                    >
                       Get Started
                       <div className="text-[10px] text-gray-600 -mt-0.5">Clip now</div>
                     </button>

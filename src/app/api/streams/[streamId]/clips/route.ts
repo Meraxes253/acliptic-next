@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db";
-import { stream, clip } from "@/db/schema/users";
+import { stream, clip, uploadedClip, socialMediaHandle } from "@/db/schema/users";
 import { eq, desc } from "drizzle-orm";
 
 //done
@@ -69,9 +69,36 @@ export async function GET(
 			});
 		}
 
+		// Fetch upload information for all clips
+		const clipIds = clips.map(c => c.clip_id);
+		const uploadsByClip = new Map<string, Array<{platform_id: number, upload_link: string | null, uploaded_at: Date | null}>>();
+
+		// Fetch uploads for each clip individually
+		for (const clipId of clipIds) {
+			const clipUploads = await db
+				.select({
+					platform_id: socialMediaHandle.platform_id,
+					upload_link: uploadedClip.upload_link,
+					uploaded_at: uploadedClip.uploaded_at,
+				})
+				.from(uploadedClip)
+				.innerJoin(socialMediaHandle, eq(uploadedClip.social_media_handle_id, socialMediaHandle.handle_id))
+				.where(eq(uploadedClip.clip_id, clipId));
+
+			if (clipUploads.length > 0) {
+				uploadsByClip.set(clipId, clipUploads);
+			}
+		}
+
+		// Combine clips with their upload information
+		const clipsWithUploads = clips.map(clip => ({
+			...clip,
+			uploads: uploadsByClip.get(clip.clip_id) || [],
+		}));
+
 		return NextResponse.json({
 			confirmation: "success",
-			data: clips,
+			data: clipsWithUploads,
 		});
 	} catch (error) {
 		console.error("Database error:", error);

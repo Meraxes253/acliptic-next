@@ -188,9 +188,9 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
               youtube_channel_id: profile.youtube_channel_id // Add this line
             })
           })
-        
+
           res = await res.json()
-        
+
           console.log(res)
 
           router.push("/Studio");
@@ -198,6 +198,29 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
     } catch (error) {
       console.error("Error setting up profile:", error);
       alert("Error setting up profile.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleSkip = async () => {
+    setLoading(true);
+    try {
+      // Mark onboarding as complete without requiring profile info
+      await fetch("/api/user/updateOnboardingStatus", {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: user_id,
+          username: "",
+          phone_number: "",
+          youtube_channel_id: ""
+        })
+      });
+
+      router.push("/Studio");
+    } catch (error) {
+      console.error("Error skipping onboarding:", error);
+      alert("Error skipping onboarding.");
     } finally {
       setLoading(false);
     }
@@ -315,19 +338,29 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
                 </div>
 
                 <div className="space-y-4">
-                  <Button 
-                    type="submit" 
-                    className="w-full sm:w-auto px-8 bg-black text-white hover:bg-gray-800 hel-font text-sm sm:text-base"
-                    disabled={loading || socialConnectionsLoading}
-                  >
-                    Next
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      type="submit"
+                      className="w-full sm:w-auto px-8 bg-black text-white hover:bg-gray-800 hel-font text-sm sm:text-base"
+                      disabled={loading || socialConnectionsLoading}
+                    >
+                      Next
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleSkip}
+                      className="w-full sm:w-auto px-8 bg-white text-black border-2 border-black hover:bg-gray-50 hel-font text-sm sm:text-base font-medium"
+                      disabled={loading || socialConnectionsLoading}
+                    >
+                      Skip for now
+                    </Button>
+                  </div>
 
                   <div className="flex gap-2 relative h-1">
                     <div className="h-full w-[160px] sm:w-[320px] bg-black rounded" />
                     <div className="h-full w-[160px] sm:w-[320px] bg-gray-200 rounded overflow-hidden">
-                      <div 
-                        className="h-full bg-black transition-all duration-700 ease-in-out" 
+                      <div
+                        className="h-full bg-black transition-all duration-700 ease-in-out"
                         style={{ width: `${progressBarWidth}%` }}
                       />
                     </div>
@@ -379,19 +412,29 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
                 </div>
 
                 <div className="space-y-4">
-                  <Button 
-                    type="submit" 
-                    className="w-full sm:w-auto px-8 bg-black text-white hover:bg-gray-800 text-sm sm:text-base"
-                    disabled={loading}
-                  >
-                    Finish
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      type="submit"
+                      className="w-full sm:w-auto px-8 bg-black text-white hover:bg-gray-800 text-sm sm:text-base"
+                      disabled={loading}
+                    >
+                      Finish
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleSkip}
+                      className="w-full sm:w-auto px-8 bg-white text-black border-2 border-black hover:bg-gray-50 text-sm sm:text-base font-medium"
+                      disabled={loading}
+                    >
+                      Skip for now
+                    </Button>
+                  </div>
 
                   <div className="flex gap-2 relative h-1">
                     <div className="h-full w-[160px] sm:w-[320px] bg-black rounded" />
                     <div className="h-full w-[160px] sm:w-[320px] bg-gray-200 rounded overflow-hidden">
-                      <div 
-                        className="h-full bg-black transition-all duration-700 ease-in-out" 
+                      <div
+                        className="h-full bg-black transition-all duration-700 ease-in-out"
                         style={{ width: `${progressBarWidth}%` }}
                       />
                     </div>
