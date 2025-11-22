@@ -2,10 +2,10 @@ import Image from 'next/image';
 
 const HowItWorksComponent = () => {
   return (
-    <div id="how-it-works" className="min-h-screen bg-gray-50 py-20 px-40">
+    <div id="how-it-works" className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-20 px-40">
       <div className="max-w-7xl mx-auto relative">
         {/* Title */}
-        <h1 className="text-9xl lg:text-[10rem] font-light italic text-black tracking-wide leading-none text-center mb-16 denton-condensed">
+        <h1 className="text-9xl lg:text-[10rem] font-light italic text-black dark:text-white tracking-wide leading-none text-center mb-16 denton-condensed">
           How It Works
         </h1>
 
@@ -23,8 +23,8 @@ const HowItWorksComponent = () => {
           />
 
           {/* Text bubble for left image - positioned top left */}
-          <div className="absolute top-16 -left-40 bg-black text-white px-5 py-3 rounded-lg max-w-[238px] text-sm">
-            <p>Automatically pulls the latest streams from your twitch, <span className="text-gray-400">so you never miss a moment to clips and share.</span></p>
+          <div className="absolute top-16 -left-40 bg-black dark:bg-white text-white dark:text-black px-5 py-3 rounded-lg max-w-[238px] text-sm">
+            <p>Automatically pulls the latest streams from your twitch, <span className="text-gray-400 dark:text-gray-600">so you never miss a moment to clips and share.</span></p>
           </div>
 
           {/* Username label */}
@@ -52,8 +52,8 @@ const HowItWorksComponent = () => {
             />
 
             {/* Text bubble for center image - positioned top */}
-            <div className="absolute -top-14 left-1/10 transform -translate-x-1/2 bg-black text-white px-5 py-3 rounded-lg max-w-[255px] text-sm">
-              <p>Our AI automatically clips, captions, adds B-Roll, <span className="text-gray-400">and enhances audio, so your videos are ready to post with no extra editing.</span></p>
+            <div className="absolute -top-14 left-1/10 transform -translate-x-1/2 bg-black dark:bg-white text-white dark:text-black px-5 py-3 rounded-lg max-w-[255px] text-sm">
+              <p>Our AI automatically clips, captions, adds B-Roll, <span className="text-gray-400 dark:text-gray-600">and enhances audio, so your videos are ready to post with no extra editing.</span></p>
             </div>
 
             {/* Username label */}
@@ -79,8 +79,8 @@ const HowItWorksComponent = () => {
             />
 
             {/* Text bubble for right image - positioned top right */}
-            <div className="absolute -top-10 -right-20 bg-black text-white px-5 py-3 rounded-lg max-w-[238px] text-sm">
-              <p>Automatically uploads your videos across all platforms, <span className="text-gray-400">so you stay consistent and be everywhere without lifting a finger.</span></p>
+            <div className="absolute -top-10 -right-20 bg-black dark:bg-white text-white dark:text-black px-5 py-3 rounded-lg max-w-[238px] text-sm">
+              <p>Automatically uploads your videos across all platforms, <span className="text-gray-400 dark:text-gray-600">so you stay consistent and be everywhere without lifting a finger.</span></p>
             </div>
 
             {/* Username label */}
@@ -96,23 +96,23 @@ const HowItWorksComponent = () => {
 
             {/* Social media icons - positioned on right side center of image8 */}
             <div className="absolute right-5 top-1/2 transform -translate-y-1/2 flex flex-col space-y-3 z-10">
-              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-brand-youtube">
+              <div className="w-14 h-14 bg-white dark:bg-zinc-800 rounded-full flex items-center justify-center shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-brand-youtube text-black dark:text-white">
                   <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                   <path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8z" />
                   <path d="M10 9l5 3l-5 3z" />
                 </svg>
               </div>
-              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-brand-instagram">
+              <div className="w-14 h-14 bg-white dark:bg-zinc-800 rounded-full flex items-center justify-center shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-brand-instagram text-black dark:text-white">
                   <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                   <path d="M4 8a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z" />
                   <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
                   <path d="M16.5 7.5v.01" />
                 </svg>
               </div>
-              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-brand-tiktok">
+              <div className="w-14 h-14 bg-white dark:bg-zinc-800 rounded-full flex items-center justify-center shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-brand-tiktok text-black dark:text-white">
                   <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                   <path d="M21 7.917v4.034a9.948 9.948 0 0 1 -5 -1.951v4.5a6.5 6.5 0 1 1 -8 -6.326v4.326a2.5 2.5 0 1 0 4 2v-11.5h4.083a6.005 6.005 0 0 0 4.917 4.917z" />
                 </svg>

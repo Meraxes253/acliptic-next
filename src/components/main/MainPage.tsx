@@ -47,7 +47,7 @@ export default function MainPage({user_id}: HomePageProps) {
   }, []);
 
   return (
-    <div className="overflow-x-hidden bg-white min-h-screen">
+    <div className="overflow-x-hidden bg-white dark:bg-black min-h-screen">
       <Navigation user_id={user_id}/>
 
       {/* Hero Section */}
@@ -78,10 +78,10 @@ export default function MainPage({user_id}: HomePageProps) {
       </div>
 
 
-      <div className='mt-20 lg:mt-[180px] px-6 md:px-24 lg:px-44 bg-gray-50'>
+      <div className='mt-20 lg:mt-[180px] px-6 md:px-24 lg:px-44 bg-gray-50 dark:bg-zinc-900'>
         <div className="flex flex-col-reverse lg:flex-row items-center lg:items-start lg:justify-between gap-12 lg:gap-0">
           <div className="w-full lg:w-auto max-w-2xl lg:-ml-20 lg:mt-20 text-center lg:text-left">
-            <h1 className="text-5xl lg:text-[12rem] denton-condensed" style={{ letterSpacing: '-0.04em', lineHeight: '92.7%' }}>
+            <h1 className="text-5xl lg:text-[12rem] denton-condensed dark:text-white" style={{ letterSpacing: '-0.04em', lineHeight: '92.7%' }}>
               Trusted
               <br />
               By

@@ -77,23 +77,23 @@ export default function LoginPage() {
             </div>
 
             {/* Right Side - Login Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center px-8 lg:px-16">
-                <div className="w-full max-w-md space-y-6">
+            <div className="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-6 md:px-8 lg:px-16 py-8">
+                <div className="w-full max-w-md space-y-4 md:space-y-6">
                     {/* Header */}
-                    <div className="mb-8">
-                        <h1 className="text-9xl lg:text-[10rem] font-light text-black tracking-wide leading-none text-center mb-16 relative z-10 denton-condensed">
+                    <div className="mb-6 md:mb-8">
+                        <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-light text-black tracking-wide leading-none text-center mb-8 md:mb-12 lg:mb-16 relative z-10 denton-condensed">
                             Login
                         </h1>
-                        <p className="text-gray-600 text-sm">
+                        <p className="text-gray-600 text-xs sm:text-sm">
                             Welcome back! Enter your Credentials to access your account
                         </p>
                     </div>
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
                         {/* Email Field */}
-                        <div className="space-y-2">
-                            <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                        <div className="space-y-1.5 md:space-y-2">
+                            <Label htmlFor="email" className="text-xs sm:text-sm font-medium text-gray-700">
                                 Email
                             </Label>
                             <Input
@@ -102,17 +102,17 @@ export default function LoginPage() {
                                 type="email"
                                 placeholder="example@email.com"
                                 required
-                                className="w-full px-6 py-4 gradient-silver rounded-full text-white placeholder-gray-300 border-0 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 text-lg"
+                                className="w-full px-4 py-3 sm:px-5 sm:py-3.5 md:px-6 md:py-4 gradient-silver rounded-full text-white placeholder-gray-300 border-0 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 text-sm sm:text-base md:text-lg"
                             />
                         </div>
 
                         {/* Password Field */}
-                        <div className="space-y-2">
+                        <div className="space-y-1.5 md:space-y-2">
                             <div className="flex items-center justify-between">
-                                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                                <Label htmlFor="password" className="text-xs sm:text-sm font-medium text-gray-700">
                                     Password
                                 </Label>
-                                <Link href="/forgot-password" className="text-sm text-gray-500 hover:text-gray-700">
+                                <Link href="/forgot-password" className="text-xs sm:text-sm text-gray-500 hover:text-gray-700">
                                     Forgot Password
                                 </Link>
                             </div>
@@ -122,14 +122,14 @@ export default function LoginPage() {
                                 type="password"
                                 placeholder="••••••••••••"
                                 required
-                                className="w-full px-6 py-4 gradient-silver rounded-full text-white placeholder-gray-300 border-0 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 text-lg"
+                                className="w-full px-4 py-3 sm:px-5 sm:py-3.5 md:px-6 md:py-4 gradient-silver rounded-full text-white placeholder-gray-300 border-0 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 text-sm sm:text-base md:text-lg"
                             />
                         </div>
 
                         {/* Login Button */}
                         <Button
                             type="submit"
-                            className="w-full gradient-silver text-white py-4 px-6 text-lg rounded-full font-medium hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] border-0"
+                            className="w-full gradient-silver text-white py-3 px-4 sm:py-3.5 sm:px-5 md:py-4 md:px-6 text-sm sm:text-base md:text-lg rounded-full font-medium hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] border-0"
                             disabled={isLoading}
                         >
                             {isLoading ? "Signing in..." : "Login"}
@@ -146,7 +146,7 @@ export default function LoginPage() {
                     {/* Google Sign In */}
                     <Button
                         variant="outline"
-                        className="w-full gradient-silver text-white border-0 hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] py-4 px-6 text-lg rounded-full font-medium"
+                        className="w-full gradient-silver text-white border-0 hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] py-3 px-4 sm:py-3.5 sm:px-5 md:py-4 md:px-6 text-sm sm:text-base md:text-lg rounded-full font-medium"
                         onClick={async () => {
                             try {
                                 await googleSignInAction()
@@ -156,7 +156,7 @@ export default function LoginPage() {
                             }
                         }}
                     >
-                        <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" viewBox="0 0 24 24">
                             <path
                                 fill="#4285F4"
                                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -178,7 +178,7 @@ export default function LoginPage() {
                     </Button>
 
                     {/* Sign Up Link */}
-                    <p className="text-center text-sm text-gray-500">
+                    <p className="text-center text-xs sm:text-sm text-gray-500">
                         Don't have an account?{' '}
                         <Link href="/Signup" className="text-black font-medium hover:underline">
                             Sign Up

@@ -146,7 +146,7 @@ const StreamingHeroSection = () => {
   }, [scrolled, animationComplete]);
 
   return (
-    <div className="relative min-h-screen bg-gray-100 overflow-hidden">
+    <div className="relative min-h-screen bg-gray-100 dark:bg-black overflow-hidden">
       {/* Content Container - Sticky so it stays in place */}
       <div className="sticky top-0 left-0 right-0 h-screen z-10 flex items-center justify-center px-4 sm:px-6 lg:px-8 -mt-20">
         <div className={`w-full h-full flex items-center transition-all duration-1000 ease-in-out ${
@@ -159,7 +159,7 @@ const StreamingHeroSection = () => {
               ? 'left-1/2 -translate-x-[-50px] top-[22%]'
               : 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
           }`}>
-            <h1 className={`font-serif text-black leading-none tracking-tight denton-condensed transition-all duration-1000 whitespace-nowrap ${
+            <h1 className={`font-serif text-black dark:text-white leading-none tracking-tight denton-condensed transition-all duration-1000 whitespace-nowrap ${
               scrolled ? 'text-[80px] lg:text-[100px]' : 'text-[200px] lg:text-[280px]'
             }`}>
               ACLIPTIC
@@ -202,7 +202,7 @@ const StreamingHeroSection = () => {
               </div>
             </div>
             {/* Create Tooltip - Left Side */}
-            <div className="absolute -top-16 -left-28 bg-gray-600 bg-opacity-80 text-white px-5 py-3 rounded-lg text-[11px] font-medium leading-tight max-w-[120px] z-20">
+            <div className="absolute -top-16 -left-28 bg-gray-600 dark:bg-zinc-800 bg-opacity-80 text-white px-5 py-3 rounded-lg text-[11px] font-medium leading-tight max-w-[120px] z-20">
               CREATE<br />
               TIKTOKS,<br />
               REELS,<br />
@@ -215,9 +215,9 @@ const StreamingHeroSection = () => {
             </div>
 
             {/* All Done Live Tooltip - Right Side */}
-            <div className="absolute top-16 -right-40 bg-white text-gray-800 px-5 py-3 rounded-full text-sm font-medium leading-tight whitespace-nowrap text-center drop-shadow-2xl z-20">
+            <div className="absolute top-16 -right-40 bg-white dark:bg-zinc-900 text-gray-800 dark:text-white px-5 py-3 rounded-full text-sm font-medium leading-tight whitespace-nowrap text-center drop-shadow-2xl z-20">
               All Done Live<br />
-              <span className="text-gray-500 text-[11px]">Powered by AI</span>
+              <span className="text-gray-500 dark:text-gray-300 text-[11px]">Powered by AI</span>
             </div>
 
             {/* Phone Image - On top of background */}
@@ -241,7 +241,7 @@ const StreamingHeroSection = () => {
               <div className={`transition-all duration-1000 delay-200 ${
                 scrolled ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
               }`}>
-                <p className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                <p className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight">
                    empowers creators to produce{' '}
                   <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
                     professional quality
@@ -254,7 +254,7 @@ const StreamingHeroSection = () => {
               <div className={`transition-all duration-1000 delay-300 ${
                 scrolled ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
               }`}>
-                <p className="text-lg text-gray-600">
+                <p className="text-lg text-gray-600 dark:text-gray-300">
                   Turn your streams into engaging clips with our AI-powered platform.
                 </p>
               </div>
@@ -273,10 +273,10 @@ const StreamingHeroSection = () => {
                   <div className="relative">
                     <button
                       onClick={() => router.push('/Studio')}
-                      className="bg-white text-black px-5 py-2 rounded-full text-[13px] font-medium transition-all whitespace-nowrap ml-3 relative z-10 hover:scale-105 transform"
+                      className="bg-white dark:bg-zinc-900 text-black dark:text-white px-5 py-2 rounded-full text-[13px] font-medium transition-all whitespace-nowrap ml-3 relative z-10 hover:scale-105 transform"
                     >
                       Get Started
-                      <div className="text-[10px] text-gray-600 -mt-0.5">Clip now</div>
+                      <div className="text-[10px] text-gray-600 dark:text-gray-400 -mt-0.5">Clip now</div>
                     </button>
                     {/* Blue gradient border effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full p-0.5 ml-3">

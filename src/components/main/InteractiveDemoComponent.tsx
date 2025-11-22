@@ -96,23 +96,23 @@ const InteractiveDemo: React.FC = () => {
   };
 
   return (
-    <div id="interactive-demo" className="relative w-full bg-white py-20"><div className="max-w-6xl mx-auto px-4 flex items-center justify-center">
+    <div id="interactive-demo" className="relative w-full bg-white dark:bg-black py-20"><div className="max-w-6xl mx-auto px-4 flex items-center justify-center">
       <div className="w-full max-w-6xl">
         {/* Main Title */}
         <div className="text-center mb-12">
-          <h1 className="text-8xl md:text-9xl lg:text-[10rem] xl:text-[12rem] font-serif text-black italic mb-8 md:mb-12 text-center px-4 relative z-10 denton-condensed">
+          <h1 className="text-8xl md:text-9xl lg:text-[10rem] xl:text-[12rem] font-serif text-black dark:text-white italic mb-8 md:mb-12 text-center px-4 relative z-10 denton-condensed">
             Interactive<br />Demo
           </h1>
         </div>
 
         <div className="relative flex flex-col lg:flex-row gap-6 items-center justify-center -mt-24">
           {/* Controls Panel */}
-          <div className="absolute -left-36 top-1/2 transform -translate-y-1/2 bg-gray-100 rounded-2xl p-4 border border-gray-200 shadow-2xl w-[280px] h-[420px] z-10">
-            <h3 className="text-gray-900 text-xl font-semibold mb-4">Toggle to try edits</h3>
+          <div className="absolute -left-36 top-1/2 transform -translate-y-1/2 bg-gray-100 dark:bg-zinc-900 rounded-2xl p-4 border border-gray-200 dark:border-zinc-700 shadow-2xl w-[280px] h-[420px] z-10">
+            <h3 className="text-gray-900 dark:text-white text-xl font-semibold mb-4">Toggle to try edits</h3>
             <div className="space-y-4">
               {toggles.map((toggle) => (
                 <div key={toggle.id} className="flex items-center justify-between">
-                  <span className="text-gray-700 text-base font-medium">{toggle.label}</span>
+                  <span className="text-gray-700 dark:text-gray-300 text-base font-medium">{toggle.label}</span>
                   <button
                     onClick={() => handleToggle(toggle.id)}
                     className={`relative w-12 h-6 rounded-full transition-all duration-300 ${
@@ -172,10 +172,10 @@ const InteractiveDemo: React.FC = () => {
             </div>
 
             {/* Viral Score */}
-            <div className="absolute top-1/2 -right-36 transform -translate-y-1/2 bg-white rounded-2xl px-8 py-4 shadow-2xl border border-gray-200 flex flex-col justify-center denton-condensed">
+            <div className="absolute top-1/2 -right-36 transform -translate-y-1/2 bg-white dark:bg-zinc-900 rounded-2xl px-8 py-4 shadow-2xl border border-gray-200 dark:border-zinc-700 flex flex-col justify-center denton-condensed">
               <div className="text-center">
-                <div className="text-[80px] font-bold text-gray-900">{viralScore}<span className="text-[48px] text-gray-500">/100</span></div>
-                <div className="text-[24px] text-gray-500 font-medium">virality score</div>
+                <div className="text-[80px] font-bold text-gray-900 dark:text-white">{viralScore}<span className="text-[48px] text-gray-500 dark:text-gray-400">/100</span></div>
+                <div className="text-[24px] text-gray-500 dark:text-gray-400 font-medium">virality score</div>
               </div>
             </div>
           </div>
@@ -183,8 +183,8 @@ const InteractiveDemo: React.FC = () => {
 
         {/* Bottom Text */}
         <div className="text-center mt-8">
-          <p className="text-3xl font-bold text-gray-900 mb-2">Billie Eilish
-          <span className="text-gray-600"> master class awards chatter</span>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Billie Eilish
+          <span className="text-gray-600 dark:text-gray-400"> master class awards chatter</span>
           </p>
         </div>
       </div>

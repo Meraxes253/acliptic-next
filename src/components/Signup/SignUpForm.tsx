@@ -113,25 +113,25 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-white flex">
-      <Toaster position="top-right" />      
-      <div className="w-full flex items-center justify-center px-8 lg:px-16">
-        <div className="w-full max-w-md space-y-6">
+      <Toaster position="top-right" />
+      <div className="w-full flex items-center justify-center px-4 sm:px-6 md:px-8 lg:px-16 py-8">
+        <div className="w-full max-w-md space-y-4 md:space-y-6">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-9xl lg:text-[10rem] font-light text-black tracking-wide leading-none text-center mb-16 relative z-10 denton-condensed whitespace-nowrap">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-light text-black tracking-wide leading-none text-center mb-8 md:mb-12 lg:mb-16 relative z-10 denton-condensed">
               Sign Up
             </h1>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 text-xs sm:text-sm">
               Welcome to Acliptic! Enter your credentials to start clipping.
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSignUp} className="space-y-6">
+          <form onSubmit={handleSignUp} className="space-y-4 md:space-y-6">
             <>
               {/* Email Field */}
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-lg font-medium text-gray-700">
+              <div className="space-y-1.5 md:space-y-2">
+                <Label htmlFor="email" className="text-xs sm:text-sm md:text-lg font-medium text-gray-700">
                   Email
                 </Label>
                 <Input
@@ -142,16 +142,16 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className={`w-full px-6 py-4 gradient-silver rounded-full text-white placeholder-gray-300 border-0 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 text-lg ${
+                  className={`w-full px-4 py-3 sm:px-5 sm:py-3.5 md:px-6 md:py-4 gradient-silver rounded-full text-white placeholder-gray-300 border-0 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 text-sm sm:text-base md:text-lg ${
                     errors.email ? "ring-2 ring-red-400" : ""
                   }`}
                 />
-                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                {errors.email && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.email}</p>}
               </div>
 
               {/* Password Field */}
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-lg font-medium text-gray-700">
+              <div className="space-y-1.5 md:space-y-2">
+                <Label htmlFor="password" className="text-xs sm:text-sm md:text-lg font-medium text-gray-700">
                   Password
                 </Label>
                 <Input
@@ -162,18 +162,18 @@ export default function SignupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className={`w-full px-6 py-4 gradient-silver rounded-full text-white placeholder-gray-300 border-0 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 text-lg ${
+                  className={`w-full px-4 py-3 sm:px-5 sm:py-3.5 md:px-6 md:py-4 gradient-silver rounded-full text-white placeholder-gray-300 border-0 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 text-sm sm:text-base md:text-lg ${
                     errors.password ? "ring-2 ring-red-400" : ""
                   }`}
                 />
-                {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+                {errors.password && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.password}</p>}
               </div>
             </>
 
             {/* Continue/Sign Up Button */}
             <Button
               type="submit"
-              className="w-full gradient-silver text-white py-4 px-6 text-lg rounded-full font-medium hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] border-0"
+              className="w-full gradient-silver text-white py-3 px-4 sm:py-3.5 sm:px-5 md:py-4 md:px-6 text-sm sm:text-base md:text-lg rounded-full font-medium hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] border-0"
               disabled={loading}
             >
               {loading ? "Loading..." : "Sign Up"}
@@ -190,11 +190,11 @@ export default function SignupPage() {
           {/* Google Sign In */}
           <Button
               variant="outline"
-              className="w-full gradient-silver rounded-full text-white border-0 hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] py-4 text-lg"
+              className="w-full gradient-silver rounded-full text-white border-0 hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] py-3 px-4 sm:py-3.5 sm:px-5 md:py-4 md:px-6 text-sm sm:text-base md:text-lg"
               onClick={handleGoogleAuth}
               disabled={loading}
             >
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -216,7 +216,7 @@ export default function SignupPage() {
             </Button>
 
           {/* Sign In Link */}
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-xs sm:text-sm text-gray-500">
             Already have an account?{' '}
             <Link href="/Login" className="text-black font-medium hover:underline">
               Log In
@@ -224,7 +224,7 @@ export default function SignupPage() {
           </p>
 
           {/* Terms and Conditions */}
-          <p className="text-center text-xs text-gray-500 mt-6">
+          <p className="text-center text-[10px] sm:text-xs text-gray-500 mt-4 md:mt-6">
             By clicking Sign up with Google or Continue with email you agree to our{' '}
             <Link href="#" className="text-black hover:underline">
               Terms

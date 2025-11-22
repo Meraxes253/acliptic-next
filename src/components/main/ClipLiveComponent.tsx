@@ -2,9 +2,9 @@ import Image from 'next/image';
 
 const ClipLive = () => {
   return (
-    <div className="relative w-full py-20 bg-gray-50">
+    <div className="relative w-full py-20 bg-gray-50 dark:bg-zinc-900">
       {/* Title */}
-      <h1 className="text-8xl md:text-9xl lg:text-[10rem] xl:text-[12rem] font-serif text-black italic mb-8 md:mb-12 text-center px-4 relative z-10 denton-condensed">
+      <h1 className="text-8xl md:text-9xl lg:text-[10rem] xl:text-[12rem] font-serif text-black dark:text-white italic mb-8 md:mb-12 text-center px-4 relative z-10 denton-condensed">
         Clip Live
       </h1>
 
@@ -38,13 +38,13 @@ const ClipLive = () => {
           </div>
 
           {/* Text bubble on upper right - overlapping top */}
-          <div className="absolute -top-8 -right-8 bg-black text-white px-4 py-3 rounded-lg max-w-[220px] text-sm text-center z-10">
-            <p>When you are live on twitch our AI will be monitoring, <span className="text-gray-400"> so as soon as a clip worthy moment happens, it will clip it, edit, upload it to all</span> social platforms in real-time.</p>
+          <div className="absolute -top-8 -right-8 bg-black dark:bg-white text-white dark:text-black px-4 py-3 rounded-lg max-w-[220px] text-sm text-center z-10">
+            <p>When you are live on twitch our AI will be monitoring, <span className="text-gray-400 dark:text-gray-600"> so as soon as a clip worthy moment happens, it will clip it, edit, upload it to all</span> social platforms in real-time.</p>
           </div>
 
           {/* Text bubble on middle left - overlapping side */}
-          <div className="absolute top-1/2 -left-32 transform -translate-y-1/2 bg-black text-white px-4 py-3 rounded-lg max-w-[240px] text-sm text-center z-10">
-            <h1 className='denton-condensed text-2xl'>Live & <span className="text-gray-400">Pre-recorded</span></h1>
+          <div className="absolute top-1/2 -left-32 transform -translate-y-1/2 bg-black dark:bg-white text-white dark:text-black px-4 py-3 rounded-lg max-w-[240px] text-sm text-center z-10">
+            <h1 className='denton-condensed text-2xl'>Live & <span className="text-gray-400 dark:text-gray-600">Pre-recorded</span></h1>
             <span className="text-sm">All Clipped with</span>
             <h1 className='denton-condensed text-2xl'>Acliptic AI</h1>
           </div>

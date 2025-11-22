@@ -247,8 +247,8 @@ export async function GET(request: Request) {
 			);
 		}
 
-		// Otherwise proceed with the original redirect
-		return NextResponse.redirect(new URL("/Profile", request.url));
+		// Redirect to Studio with profile modal and integrations tab open
+		return NextResponse.redirect(new URL("/Studio?openProfileModal=true&activeTab=integrations", request.url));
 	} catch (error) {
 		console.error("Error checking onboarding status:", error);
 		// Default to onboarding page if there's an error

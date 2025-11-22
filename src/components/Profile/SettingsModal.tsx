@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -10,6 +10,7 @@ import SubscriptionsTab from '@/components/Profile/SubscriptionsTab';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: string;
   user: {
     id: string;
     email: string;
@@ -29,8 +30,13 @@ const tabs = [
   { id: 'subscriptions', label: 'Subscriptions', icon: '💎' }
 ];
 
-export default function SettingsModal({ isOpen, onClose, user }: SettingsModalProps) {
-  const [activeTab, setActiveTab] = useState('profile');
+export default function SettingsModal({ isOpen, onClose, initialTab = 'profile', user }: SettingsModalProps) {
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Update activeTab when initialTab changes
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -73,7 +79,7 @@ export default function SettingsModal({ isOpen, onClose, user }: SettingsModalPr
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-shrink-0 flex items-center space-x-2 px-4 py-3 border-b-[3px] font-semibold text-sm transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'dark:border-white text-black dark:text-white gradient-silver-bg'
+                    ? 'dark:border-white text-black dark:text-white border-black'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                 }`}
               >

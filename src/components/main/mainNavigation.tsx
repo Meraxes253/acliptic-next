@@ -79,12 +79,12 @@ export default function Navigation({ user_id, onSignOut }: NavigationProps) {
               ))}
             </div>
             
-            {/* Desktop Auth Buttons */}
-            <div className="hidden md:flex items-center space-x-4">
+            {/* Auth Buttons - Always visible */}
+            <div className="flex items-center space-x-2 md:space-x-4">
               {user_id ? (
                 <Link
                   href="/Studio"
-                  className="bg-black text-white px-5 py-2.5 rounded-full text-base font-medium hover:bg-gray-800 transition-all duration-200 transform hover:scale-105"
+                  className="bg-black text-white px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-sm md:text-base font-medium hover:bg-gray-800 transition-all duration-200 transform hover:scale-105"
                 >
                   Studio
                 </Link>
@@ -92,37 +92,37 @@ export default function Navigation({ user_id, onSignOut }: NavigationProps) {
                 <>
                   <Link
                     href="/Login"
-                    className="text-base font-medium text-gray-600 hover:text-black dark:hover:text-white transition-colors"
+                    className="hidden md:block text-base font-medium text-gray-600 hover:text-black dark:hover:text-white transition-colors"
                   >
                     Login
                   </Link>
                   <Link
                     href="/Signup"
-                    className="bg-black text-white px-5 py-2.5 rounded-full text-base font-medium hover:bg-gray-800 transition-all duration-200 transform hover:scale-105"
+                    className="bg-black text-white px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-sm md:text-base font-medium hover:bg-gray-800 transition-all duration-200 transform hover:scale-105"
                   >
                     Try Acliptic
                   </Link>
                 </>
               )}
-            </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:bg-white dark:hover:bg-gray-200 transition-colors"
-            >
-              <div className="w-6 h-6 flex flex-col justify-center items-center">
-                <span className={`block w-5 h-0.5 bg-black transform transition-all duration-300 ${
-                  isMobileMenuOpen ? 'rotate-45 translate-y-1' : '-translate-y-1'
-                }`} />
-                <span className={`block w-5 h-0.5 bg-black transition-all duration-300 ${
-                  isMobileMenuOpen ? 'opacity-0' : 'opacity-100'
-                }`} />
-                <span className={`block w-5 h-0.5 bg-black transform transition-all duration-300 ${
-                  isMobileMenuOpen ? '-rotate-45 -translate-y-1' : 'translate-y-1'
-                }`} />
-              </div>
-            </button>
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:bg-white dark:hover:bg-gray-200 transition-colors"
+              >
+                <div className="w-6 h-6 flex flex-col justify-center items-center">
+                  <span className={`block w-5 h-0.5 bg-black transform transition-all duration-300 ${
+                    isMobileMenuOpen ? 'rotate-45 translate-y-1' : '-translate-y-1'
+                  }`} />
+                  <span className={`block w-5 h-0.5 bg-black transition-all duration-300 ${
+                    isMobileMenuOpen ? 'opacity-0' : 'opacity-100'
+                  }`} />
+                  <span className={`block w-5 h-0.5 bg-black transform transition-all duration-300 ${
+                    isMobileMenuOpen ? '-rotate-45 -translate-y-1' : 'translate-y-1'
+                  }`} />
+                </div>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -143,35 +143,18 @@ export default function Navigation({ user_id, onSignOut }: NavigationProps) {
                 {link.label}
               </button>
             ))}
-            
-            <div className="pt-4 border-t border-gray-100 space-y-4">
-              {user_id ? (
+
+            {!user_id && (
+              <div className="pt-4 border-t border-gray-100">
                 <Link
-                  href="/Studio"
-                  className="block bg-black text-white px-4 py-2 rounded-full text-base font-medium text-center hover:bg-gray-800 transition-colors"
+                  href="/Login"
+                  className="block text-base font-medium text-gray-600 hover:text-black transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Studio
+                  Login
                 </Link>
-              ) : (
-                <>
-                  <Link 
-                    href="/Login" 
-                    className="block text-base font-medium text-gray-600 hover:text-black transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/Signup"
-                    className="block bg-black text-white px-4 py-2 rounded-full text-base font-medium text-center hover:bg-gray-800 transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Try Acliptic
-                  </Link>
-                </>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </nav>

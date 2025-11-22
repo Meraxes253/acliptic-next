@@ -65,13 +65,13 @@ function FAQItem({ question, answer, isOpen, onClick }: {
         onClick={onClick}
         aria-expanded={isOpen}
       >
-        <span className="text-lg hel-font text-gray-900">{question}</span>
+        <span className="text-lg hel-font text-gray-900 dark:text-white">{question}</span>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
           className="flex-shrink-0 ml-4"
         >
-          <ChevronDown className="w-5 h-5 text-gray-500" />
+          <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
         </motion.div>
       </button>
       <AnimatePresence initial={false}>
@@ -84,7 +84,7 @@ function FAQItem({ question, answer, isOpen, onClick }: {
             className="overflow-hidden"
           >
             <div className="pb-6 pr-12">
-              <p className="text-gray-600 hel-font">{answer}</p>
+              <p className="text-gray-600 dark:text-gray-300 hel-font">{answer}</p>
             </div>
           </motion.div>
         )}
@@ -105,7 +105,7 @@ export function FAQSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-9xl lg:text-[12rem] font-light italic text-black tracking-wide leading-none text-center mb-24 denton-condensed"
+            className="text-9xl lg:text-[12rem] font-light italic text-black dark:text-white tracking-wide leading-none text-center mb-24 denton-condensed"
           >
             Questions? Answers.
           </motion.h2>

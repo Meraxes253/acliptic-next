@@ -3,12 +3,12 @@ import Image from 'next/image';
 
 const AIReframeComponent = () => {
   return (
-    <div className="min-h-screen bg-white pt-32 pb-20 px-40 mb-20">
+    <div className="min-h-screen bg-white dark:bg-black pt-32 pb-20 px-40 mb-20">
       <div className="max-w-7xl mx-auto relative">
-        
+
         {/* Main Title - Larger and positioned for overlap */}
         <div className="text-center mb-20 relative z-10">
-          <h1 className="text-9xl lg:text-[12rem] font-light italic text-black tracking-wide leading-none denton-condensed">
+          <h1 className="text-9xl lg:text-[12rem] font-light italic text-black dark:text-white tracking-wide leading-none denton-condensed">
             AI Reframe
           </h1>
         </div>
@@ -17,7 +17,7 @@ const AIReframeComponent = () => {
         <div className="absolute top-[-140px] left-0 right-0 z-20">
           <div className="flex justify-between items-start max-w-7xl mx-auto px-4">
             {/* Left Callout */}
-            <div className="bg-gray-400 text-white p-4 rounded-lg max-w-xs relative mt-8 opacity-55">
+            <div className="bg-gray-400 dark:bg-zinc-800 text-white p-4 rounded-lg max-w-xs relative mt-8 opacity-55">
               <p className="text-sm font-medium leading-tight">
                 IT ANALYZES YOUR SCENES AND APPLIES<br/>
                 THE PERFECT LAYOUT—SPLIT SCREEN,<br/>
@@ -41,7 +41,7 @@ const AIReframeComponent = () => {
 
         <div className="absolute top-0 right-0 z-20">
           <div className="flex justify-between items-start max-w-7xl mx-auto px-4">
-            <div className="bg-black text-white p-4 rounded-lg max-w-xs mt-8">
+            <div className="bg-black dark:bg-white text-white dark:text-black p-4 rounded-lg max-w-xs mt-8">
                 <p className="text-sm font-medium leading-tight">
                     RESIZE YOUR VIDEOS FOR<br/>
                     ANY PLATFORM WITH OUR<br/>

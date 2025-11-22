@@ -82,10 +82,10 @@ const LogoIcon = () => (
 
 export default function PricingPlans() {
   return (
-    <div id="pricing-plans" className="min-h-screen bg-white py-20 px-4 sm:px-6 lg:px-8">
+    <div id="pricing-plans" className="min-h-screen bg-white dark:bg-black py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h1 className="text-9xl lg:text-[12rem] font-light italic text-gray-900 tracking-wide leading-none mb-8 denton-condensed">Plans</h1>
+          <h1 className="text-9xl lg:text-[12rem] font-light italic text-gray-900 dark:text-white tracking-wide leading-none mb-8 denton-condensed">Plans</h1>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-32 max-w-none mx-auto justify-items-center">

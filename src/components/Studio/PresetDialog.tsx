@@ -12,6 +12,8 @@ interface PresetDialogProps {
   user_id: string
   isOpen: boolean
   onOpenChange: (open: boolean) => void
+  isRequired?: boolean // If true, user must configure presets before proceeding
+  onPresetsConfigured?: () => void // Callback when presets are configured
 }
 
 // Define the type for your API responses
@@ -58,11 +60,12 @@ interface UserPresets {
   [key: string]: any;
 }
 
-export default function PresetDialog({ user_id, isOpen, onOpenChange }: PresetDialogProps) {
+export default function PresetDialog({ user_id, isOpen, onOpenChange, isRequired = false, onPresetsConfigured }: PresetDialogProps) {
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null)
   const [captionsEnabled, setCaptionsEnabled] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
+  const [hasExistingPresets, setHasExistingPresets] = useState<boolean>(false)
 
   // Caption presets data
   const captionPresets = [
@@ -336,6 +339,9 @@ export default function PresetDialog({ user_id, isOpen, onOpenChange }: PresetDi
       const result: PresetResponse = await response.json()
       const userPresets = result.data as UserPresets
 
+      // Check if user has any existing presets
+      setHasExistingPresets(userPresets && Object.keys(userPresets).length > 0 && userPresets.captions !== undefined)
+
       if (userPresets?.captions) {
         // Find matching preset index
         const presetIndex = captionPresets.findIndex((p) => p.name === userPresets.captions?.name)
@@ -353,9 +359,94 @@ export default function PresetDialog({ user_id, isOpen, onOpenChange }: PresetDi
     }
   }
 
+  // Apply default presets (first preset with captions enabled)
+  const applyDefaultPresets = async () => {
+    if (!user_id) {
+      toast.error("User ID is missing. Please log in again.")
+      return
+    }
+
+    setIsLoading(true)
+    const loadingToast = toast.loading("Applying default presets...")
+
+    try {
+      // Get existing presets first
+      const response = await fetch("/api/user/getPresets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: user_id,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch existing presets")
+      }
+
+      const result: PresetResponse = await response.json()
+      const userPresets = result.data as UserPresets
+
+      // Apply default: First caption preset (Rain) with captions enabled
+      const defaultPreset = captionPresets[0]
+      const newPresets = {
+        ...userPresets,
+        captions: defaultPreset,
+      }
+
+      // Update presets
+      const updateResponse = await fetch("/api/user/updatePresets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: user_id,
+          newPresets: newPresets,
+        }),
+      })
+
+      if (!updateResponse.ok) {
+        throw new Error("Failed to update presets")
+      }
+
+      const updateResult: UpdateResponse = await updateResponse.json()
+
+      if (updateResult.confirmation === "success") {
+        toast.dismiss(loadingToast)
+        toast.success("Default presets applied successfully!")
+
+        // Update local state
+        setSelectedPreset(0)
+        setCaptionsEnabled(true)
+        setHasExistingPresets(true)
+
+        // Call the callback if provided
+        if (onPresetsConfigured) {
+          onPresetsConfigured()
+        }
+
+        // Close dialog
+        onOpenChange(false)
+      }
+    } catch (error) {
+      console.error("Error applying default presets:", error)
+      toast.dismiss(loadingToast)
+      toast.error("Failed to apply default presets. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   // Handle save preset button click
-  const handleSavePreset = () => {
-    updateUserMetadata()
+  const handleSavePreset = async () => {
+    await updateUserMetadata()
+
+    // Call the callback if provided
+    if (onPresetsConfigured) {
+      onPresetsConfigured()
+    }
   }
 
   // Toggle section expansion
@@ -370,18 +461,31 @@ export default function PresetDialog({ user_id, isOpen, onOpenChange }: PresetDi
     <>
       <Toaster position="top-right" />
         
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <Dialog open={isOpen} onOpenChange={(open) => {
+        // Prevent closing if required and no presets configured
+        if (!open && isRequired && !hasExistingPresets) {
+          toast.error("Please configure presets before proceeding", {
+            description: "You can use default presets or customize your own",
+            duration: 3000,
+          })
+          return
+        }
+        onOpenChange(open)
+      }}>
         <DialogTrigger asChild>{/* Trigger button is handled externally */}</DialogTrigger>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-3 bg-white dark:bg-black border-gray-800 dark:border-gray-700 rounded-xl shadow-lg">
           <div className="p-6">
-            
+
             {/* Header Section */}
             <DialogHeader>
               <DialogTitle className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                Choose Your Style
+                {isRequired && !hasExistingPresets ? "Configure Presets to Continue" : "Choose Your Style"}
               </DialogTitle>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Select from our professionally designed presets or customize your own
+                {isRequired && !hasExistingPresets
+                  ? "Before launching the plugin, please configure your presets. You can use our default settings or customize your own."
+                  : "Select from our professionally designed presets or customize your own"
+                }
               </p>
             </DialogHeader>
 
@@ -561,27 +665,52 @@ export default function PresetDialog({ user_id, isOpen, onOpenChange }: PresetDi
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-8 flex justify-end gap-3">
-              <Button 
-                className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 px-6"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                className="bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-gray-100 px-6"
-                onClick={handleSavePreset}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white dark:border-black/30 dark:border-t-black rounded-full animate-spin"></div>
-                    Saving...
-                  </div>
-                ) : (
-                  "Save Preset"
+            <div className="mt-8 flex justify-between items-center gap-3">
+              <div className="flex gap-3">
+                {!hasExistingPresets && (
+                  <Button
+                    className="bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 px-6"
+                    onClick={applyDefaultPresets}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        Applying...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" />
+                        Use Default Presets
+                      </div>
+                    )}
+                  </Button>
                 )}
-              </Button>
+              </div>
+              <div className="flex gap-3">
+                {!isRequired && (
+                  <Button
+                    className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 px-6"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Cancel
+                  </Button>
+                )}
+                <Button
+                  className="bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-gray-100 px-6"
+                  onClick={handleSavePreset}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white dark:border-black/30 dark:border-t-black rounded-full animate-spin"></div>
+                      Saving...
+                    </div>
+                  ) : (
+                    "Save Preset"
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
