@@ -823,7 +823,7 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
                 placeholder="Search streams..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-10 md:h-11 bg-white border border-black text-black rounded-lg"
+                className="pl-10 h-10 md:h-11 gradient-silver border border-black text-black rounded-lg dark:placeholder-black"
               />
             </div>
 
@@ -833,10 +833,10 @@ export default function StudioPage({ user_id, twitch_username, youtube_channel_i
               setSortBy(newSortBy)
               setSortOrder(newSortOrder)
             }}>
-              <SelectTrigger className="w-full sm:w-48 h-10 md:h-11 bg-white border border-black rounded-lg focus:ring-0">
+              <SelectTrigger className="w-full sm:w-48 h-10 md:h-11 gradient-silver border border-black rounded-lg focus:ring-0 dark:text-black ">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="gradient-silver">
                 <SelectItem value="date-desc">Newest First</SelectItem>
                 <SelectItem value="date-asc">Oldest First</SelectItem>
                 <SelectItem value="title-asc">Title (A-Z)</SelectItem>
