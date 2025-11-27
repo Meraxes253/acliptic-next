@@ -1,61 +1,172 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SkeletonLoader } from '@/components/LoadingSkeletonScreen';
+import { Badge } from '@/components/ui/badge';
+import { redirectToCheckout, redirectToPortal } from '@/lib/checkout-helpers';
+import { formatCurrency } from '@/lib/stripe';
+import {
+  Check,
+  X,
+  CreditCard,
+  Calendar,
+  TrendingUp,
+  Settings,
+  Crown,
+  Zap
+} from 'lucide-react';
+import { toast } from 'sonner';
+import useSWR from 'swr';
 
 interface SubscriptionsTabProps {
   user_id: string;
   loading?: boolean;
 }
 
-export default function SubscriptionsTab({ user_id, loading = false }: SubscriptionsTabProps) {
-  const [currentPlan] = useState({
-    name: 'Free Plan',
-    price: 0,
-    billing: 'No billing',
-    features: [
-      { name: 'Basic profile management', included: true },
-      { name: 'Social media integrations', included: true },
-      { name: 'Advanced analytics', included: false, proOnly: true },
-      { name: 'Priority support', included: false, proOnly: true },
-      { name: 'Custom branding', included: false, proOnly: true },
-      { name: 'API access', included: false, proOnly: true },
-    ]
-  });
+interface Plan {
+  id: string;
+  name: string;
+  description: string;
+  amount: number;
+  currency: string;
+  interval: string;
+  max_active_streams?: number;
+  max_streams?: number;
+  max_total_seconds_processed?: number;
+  features?: string[];
+}
 
-  const handleUpgrade = () => {
-    // Handle upgrade logic here
-    console.log('Upgrading to Pro plan...');
+interface Subscription {
+  plan: Plan;
+  subscription: {
+    is_active: boolean;
+    currentPeriodStart: string | null;
+    currentPeriodEnd: string | null;
+    stripeSubscriptionId: string | null;
+  };
+  usage: {
+    total_seconds_processed: number;
+    max_total_seconds_processed: number;
+    max_active_streams: number;
+    max_streams: number;
+  };
+}
+
+interface Invoice {
+  id: string;
+  amountPaid: number;
+  currency: string;
+  status: string;
+  createdAt: string;
+  hostedInvoiceUrl?: string;
+}
+
+// SWR fetcher
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+export default function SubscriptionsTab({ user_id, loading = false }: SubscriptionsTabProps) {
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
+
+  // Fetch subscription data
+  const {
+    data: subscription,
+    isLoading: subscriptionLoading,
+    mutate: mutateSubscription,
+  } = useSWR<Subscription>('/api/user/subscription', fetcher);
+
+  // Fetch available plans
+  const { data: plans, isLoading: plansLoading } = useSWR<Plan[]>('/api/plans', fetcher);
+
+  // Fetch invoices
+  const { data: invoices, isLoading: invoicesLoading } = useSWR<Invoice[]>('/api/user/invoices', fetcher);
+
+  const handleUpgrade = async (planId: string) => {
+    if (planId === 'free') return;
+
+    setUpgradeLoading(true);
+    try {
+      await redirectToCheckout({
+        priceId: planId,
+        successUrl: `${window.location.origin}/Profile?tab=subscriptions&success=true`,
+        cancelUrl: `${window.location.origin}/Profile?tab=subscriptions&canceled=true`,
+      });
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error('Failed to start checkout. Please try again.');
+    } finally {
+      setUpgradeLoading(false);
+    }
   };
 
-  if (loading) {
+  const handleBillingPortal = async () => {
+    try {
+      await redirectToPortal(`${window.location.origin}/Profile?tab=subscriptions`);
+    } catch (error) {
+      console.error('Portal error:', error);
+      toast.error('Failed to open billing portal. Please try again.');
+    }
+  };
+
+  const isCurrentPlan = (planId: string) => {
+    if (!subscription) return planId === 'free';
+    return subscription.plan.id === planId;
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const formatUsage = (used: number, max: number, unit: string) => {
+    if (unit === 'seconds') {
+      const usedMinutes = Math.round(used / 60);
+      const maxMinutes = Math.round(max / 60);
+      return `${usedMinutes}/${maxMinutes} minutes`;
+    }
+    return `${used}/${max} ${unit}`;
+  };
+
+  if (loading || subscriptionLoading) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-          <div className="space-y-2">
-            <SkeletonLoader className="h-5 w-24" />
-            <SkeletonLoader className="h-4 w-16" />
-          </div>
-          <div className="text-right space-y-2">
-            <SkeletonLoader className="h-6 w-20" />
-            <SkeletonLoader className="h-3 w-16" />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <SkeletonLoader className="h-5 w-24" />
-          <div className="space-y-2">
-            <SkeletonLoader className="h-4 w-48" />
-            <SkeletonLoader className="h-4 w-52" />
-            <SkeletonLoader className="h-4 w-44" />
-            <SkeletonLoader className="h-4 w-40" />
+      <div className="space-y-6">
+        {/* Current Plan Skeleton */}
+        <div className="relative w-full rounded-2xl overflow-hidden gradient-silver shadow-lg border border-gray-600 p-6">
+          <div className="space-y-4">
+            <SkeletonLoader className="h-6 w-32" />
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <SkeletonLoader className="h-5 w-24" />
+                <SkeletonLoader className="h-4 w-16" />
+              </div>
+              <div className="text-right space-y-2">
+                <SkeletonLoader className="h-6 w-20" />
+                <SkeletonLoader className="h-3 w-16" />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
-          <SkeletonLoader className="h-10 w-full" />
-          <SkeletonLoader className="h-3 w-64 mx-auto" />
+        {/* Usage Skeleton */}
+        <div className="relative w-full rounded-2xl overflow-hidden gradient-silver shadow-lg border border-gray-600 p-6">
+          <SkeletonLoader className="h-6 w-24 mb-4" />
+          <div className="space-y-3">
+            <SkeletonLoader className="h-4 w-full" />
+            <SkeletonLoader className="h-4 w-full" />
+            <SkeletonLoader className="h-4 w-3/4" />
+          </div>
+        </div>
+
+        {/* Plans Skeleton */}
+        <div className="space-y-4">
+          <SkeletonLoader className="h-6 w-32" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="relative w-full rounded-2xl overflow-hidden gradient-silver shadow-lg border border-gray-600 p-6">
+                <SkeletonLoader className="h-20 w-full" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -64,119 +175,269 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
   return (
     <div className="space-y-6">
       {/* Current Plan Card */}
-      <Card className="border-gray-200 dark:border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-lg">Current Plan</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+      <div className="relative w-full rounded-2xl overflow-hidden gradient-silver shadow-lg border border-gray-600">
+        <div className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Crown className="w-6 h-6 text-white" />
+            <h2 className="text-xl denton-condensed text-white">Current Plan</h2>
+            {subscription?.subscription.is_active && (
+              <Badge className="bg-green-600 text-white">Active</Badge>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">{currentPlan.name}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{currentPlan.billing}</p>
+              <h3 className="text-lg font-semibold text-white mb-1">
+                {subscription?.plan.name || 'Free Plan'}
+              </h3>
+              <p className="text-sm text-gray-400">
+                {subscription?.subscription.is_active
+                  ? `Next billing: ${formatDate(subscription.subscription.currentPeriodEnd)}`
+                  : 'No active subscription'
+                }
+              </p>
             </div>
             <div className="text-right">
-              <p className="font-bold text-lg text-gray-900 dark:text-white">
-                ${currentPlan.price}/month
+              <p className="text-2xl font-bold text-white mb-1">
+                {(subscription?.plan.amount ?? 0) === 0
+                  ? 'Free'
+                  : formatCurrency(subscription?.plan.amount ?? 0)
+                }
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentPlan.billing}
-              </p>
+              {(subscription?.plan.amount ?? 0) > 0 && (
+                <p className="text-xs text-gray-400">
+                  per {subscription?.plan.interval ?? 'month'}
+                </p>
+              )}
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Plan Features */}
-      <Card className="border-gray-200 dark:border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-lg">Plan Features</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {currentPlan.features.map((feature, index) => (
-              <div
-                key={index}
-                className={`flex items-center space-x-3 ${
-                  !feature.included ? 'opacity-50' : ''
-                }`}
+          {subscription?.subscription.is_active && (
+            <div className="mt-4 pt-4 border-t border-gray-600">
+              <Button
+                onClick={handleBillingPortal}
+                variant="outline"
+                size="sm"
+                className="bg-transparent border-gray-600 text-white hover:bg-gray-800 rounded-full"
               >
-                <div className="flex-shrink-0">
-                  {feature.included ? (
-                    <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  )}
+                <Settings className="w-4 h-4 mr-2" />
+                Manage Billing
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Usage Analytics Card */}
+      {subscription && (
+        <div className="relative w-full rounded-2xl overflow-hidden gradient-silver shadow-lg border border-gray-600">
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <TrendingUp className="w-6 h-6 text-white" />
+              <h2 className="text-xl denton-condensed text-white">Usage Analytics</h2>
+            </div>
+
+            <div className="space-y-4">
+              {/* Processing Usage */}
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-300">Video Processing</span>
+                  <span className="text-sm text-white">
+                    {formatUsage(
+                      subscription.usage?.total_seconds_processed ?? 0,
+                      subscription.usage?.max_total_seconds_processed ?? 300,
+                      'seconds'
+                    )}
+                  </span>
                 </div>
-                <span className="text-sm text-gray-700 dark:text-gray-300">
-                  {feature.name}
-                  {feature.proOnly && (
-                    <span className="ml-2 text-xs text-blue-600 dark:text-blue-400 font-medium">
-                      (Pro only)
-                    </span>
-                  )}
+                <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div
+                    className="gradient-silver h-2 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(
+                        ((subscription.usage?.total_seconds_processed ?? 0) /
+                          (subscription.usage?.max_total_seconds_processed ?? 300)) *
+                          100,
+                        100
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Active Streams */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-300">Max Active Streams</span>
+                <span className="text-sm text-white">
+                  {subscription.usage?.max_active_streams ?? 1}
                 </span>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Upgrade Section */}
-      <Card className="border-gray-200 dark:border-gray-700">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Upgrade to Pro
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Unlock advanced features and priority support
-              </p>
-            </div>
-            
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center justify-center space-x-2 mb-2">
-                <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">$19</span>
-                <span className="text-sm text-gray-600 dark:text-gray-400">/month</span>
+              {/* Total Streams */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-300">Max Total Streams</span>
+                <span className="text-sm text-white">
+                  {subscription.usage?.max_streams ?? 3}
+                </span>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Cancel anytime • 14-day free trial
-              </p>
             </div>
-
-            <Button
-              onClick={handleUpgrade}
-              className="w-full gradient-silver text-white hover:text-white hover:opacity-90 border-0 rounded-full"
-            >
-              Start Free Trial
-            </Button>
-            
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Get access to all Pro features instantly
-            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
+
+      {/* Available Plans */}
+      {plans && !plansLoading && (
+        <div className="space-y-4">
+          <h2 className="text-xl denton-condensed text-white">Available Plans</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {plans.map((plan) => {
+              const isCurrent = isCurrentPlan(plan.id);
+              return (
+                <div
+                  key={plan.id}
+                  className={`relative w-full rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] ${
+                    isCurrent
+                      ? 'gradient-silver border-2 border-gray-400'
+                      : 'gradient-silver border border-gray-600 hover:border-gray-500'
+                  }`}
+                >
+                  <div className="p-6">
+                    {isCurrent && (
+                      <Badge className="absolute top-4 right-4 bg-green-600 text-white">
+                        Current
+                      </Badge>
+                    )}
+
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-white mb-2">
+                        {plan.name}
+                      </h3>
+                      <p className="text-sm text-gray-400 mb-3">
+                        {plan.description}
+                      </p>
+
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold text-white">
+                          {(plan.amount ?? 0) === 0 ? 'Free' : formatCurrency(plan.amount ?? 0)}
+                        </span>
+                        {(plan.amount ?? 0) > 0 && (
+                          <span className="text-sm text-gray-400">
+                            per {plan.interval ?? 'month'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Features */}
+                    {plan.features && (
+                      <div className="space-y-2 mb-4">
+                        {plan.features.map((feature, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                            <span className="text-sm text-gray-300">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={() => handleUpgrade(plan.id)}
+                      disabled={isCurrent || upgradeLoading}
+                      className={`w-full rounded-full transition-all ${
+                        isCurrent
+                          ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                          : (plan.amount ?? 0) === 0
+                          ? 'gradient-silver border border-gray-600 text-white hover:bg-gray-800'
+                          : 'gradient-silver text-white hover:text-white hover:opacity-90 border-0'
+                      }`}
+                    >
+                      {upgradeLoading ? (
+                        'Loading...'
+                      ) : isCurrent ? (
+                        'Current Plan'
+                      ) : (plan.amount ?? 0) === 0 ? (
+                        'Downgrade to Free'
+                      ) : (
+                        <>
+                          <Zap className="w-4 h-4 mr-2" />
+                          Upgrade Now
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Billing History */}
-      <Card className="border-gray-200 dark:border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-lg">Billing History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <svg className="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p className="text-sm">No billing history available</p>
-            <p className="text-xs mt-1">Your invoices will appear here once you upgrade</p>
+      <div className="relative w-full rounded-2xl overflow-hidden gradient-silver shadow-lg border border-gray-600">
+        <div className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <CreditCard className="w-6 h-6 text-white" />
+            <h2 className="text-xl denton-condensed text-white">Billing History</h2>
           </div>
-        </CardContent>
-      </Card>
+
+          {invoicesLoading ? (
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <SkeletonLoader key={i} className="h-12 w-full rounded" />
+              ))}
+            </div>
+          ) : invoices && invoices.length > 0 ? (
+            <div className="space-y-3">
+              {invoices.map((invoice) => (
+                <div
+                  key={invoice.id}
+                  className="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg border border-gray-700"
+                >
+                  <div>
+                    <p className="text-sm text-white">
+                      {formatCurrency(invoice.amountPaid)}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {formatDate(invoice.createdAt)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge
+                      className={
+                        invoice.status === 'paid'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-600 text-white'
+                      }
+                    >
+                      {invoice.status}
+                    </Badge>
+                    {invoice.hostedInvoiceUrl && (
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="bg-transparent border-gray-600 text-white hover:bg-gray-800 rounded-full"
+                      >
+                        <a href={invoice.hostedInvoiceUrl} target="_blank" rel="noopener noreferrer">
+                          View
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-600" />
+              <p className="text-sm text-gray-400 mb-1">No billing history available</p>
+              <p className="text-xs text-gray-500">
+                Your invoices will appear here once you upgrade
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
