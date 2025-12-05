@@ -99,7 +99,7 @@ export default function StudioClipsPageComponent({stream_id} : StudioClipsPageCo
                         <div className="p-4 md:p-8">
                             <Link href="/Studio">
                                 <Button
-                                    className="h-10 w-10 bg-white dark:bg-gray-900 text-black dark:text-white rounded-xl flex items-center justify-center p-0 border border-black dark:border-gray-700"
+                                    className="h-10 w-10 gradient-silver text-black dark:hover:text-black rounded-xl flex items-center justify-center p-0"
                                     variant="outline"
                                 >
                                     <svg

@@ -178,19 +178,19 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
       <div className="relative w-full rounded-2xl overflow-hidden gradient-silver shadow-lg border border-gray-600">
         <div className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <Crown className="w-6 h-6 text-white" />
-            <h2 className="text-xl denton-condensed text-white">Current Plan</h2>
+            <Crown className="w-6 h-6 text-black" />
+            <h2 className="text-xl denton-condensed text-black">Current Plan</h2>
             {subscription?.subscription.is_active && (
-              <Badge className="bg-green-600 text-white">Active</Badge>
+              <Badge className="bg-green-600 text-black">Active</Badge>
             )}
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-white mb-1">
+              <h3 className="text-lg font-semibold text-black mb-1">
                 {subscription?.plan.name || 'Free Plan'}
               </h3>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-600">
                 {subscription?.subscription.is_active
                   ? `Next billing: ${formatDate(subscription.subscription.currentPeriodEnd)}`
                   : 'No active subscription'
@@ -198,14 +198,14 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
               </p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-white mb-1">
+              <p className="text-2xl font-bold text-black mb-1">
                 {(subscription?.plan.amount ?? 0) === 0
                   ? 'Free'
                   : formatCurrency(subscription?.plan.amount ?? 0)
                 }
               </p>
               {(subscription?.plan.amount ?? 0) > 0 && (
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-600">
                   per {subscription?.plan.interval ?? 'month'}
                 </p>
               )}
@@ -218,7 +218,7 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
                 onClick={handleBillingPortal}
                 variant="outline"
                 size="sm"
-                className="bg-transparent border-gray-600 text-white hover:bg-gray-800 rounded-full"
+                className="bg-transparent border-gray-600 text-black hover:bg-gray-800 rounded-full"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Manage Billing
@@ -233,16 +233,16 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
         <div className="relative w-full rounded-2xl overflow-hidden gradient-silver shadow-lg border border-gray-600">
           <div className="p-6">
             <div className="flex items-center gap-3 mb-4">
-              <TrendingUp className="w-6 h-6 text-white" />
-              <h2 className="text-xl denton-condensed text-white">Usage Analytics</h2>
+              <TrendingUp className="w-6 h-6 text-black" />
+              <h2 className="text-xl denton-condensed text-black">Usage Analytics</h2>
             </div>
 
             <div className="space-y-4">
               {/* Processing Usage */}
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-300">Video Processing</span>
-                  <span className="text-sm text-white">
+                  <span className="text-sm text-gray-600">Video Processing</span>
+                  <span className="text-sm text-black">
                     {formatUsage(
                       subscription.usage?.total_seconds_processed ?? 0,
                       subscription.usage?.max_total_seconds_processed ?? 300,
@@ -267,16 +267,16 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
 
               {/* Active Streams */}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-300">Max Active Streams</span>
-                <span className="text-sm text-white">
+                <span className="text-sm text-gray-600">Max Active Streams</span>
+                <span className="text-sm text-black">
                   {subscription.usage?.max_active_streams ?? 1}
                 </span>
               </div>
 
               {/* Total Streams */}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-300">Max Total Streams</span>
-                <span className="text-sm text-white">
+                <span className="text-sm text-gray-600">Max Total Streams</span>
+                <span className="text-sm text-black">
                   {subscription.usage?.max_streams ?? 3}
                 </span>
               </div>
@@ -288,7 +288,7 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
       {/* Available Plans */}
       {plans && !plansLoading && (
         <div className="space-y-4">
-          <h2 className="text-xl denton-condensed text-white">Available Plans</h2>
+          <h2 className="text-xl denton-condensed text-black">Available Plans</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {plans.map((plan) => {
               const isCurrent = isCurrentPlan(plan.id);
@@ -297,31 +297,31 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
                   key={plan.id}
                   className={`relative w-full rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] ${
                     isCurrent
-                      ? 'gradient-silver border-2 border-gray-400'
+                      ? 'gradient-silver border-2 border-gray-700'
                       : 'gradient-silver border border-gray-600 hover:border-gray-500'
                   }`}
                 >
                   <div className="p-6">
                     {isCurrent && (
-                      <Badge className="absolute top-4 right-4 bg-green-600 text-white">
+                      <Badge className="absolute top-4 right-4 bg-green-600 text-black">
                         Current
                       </Badge>
                     )}
 
                     <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-white mb-2">
+                      <h3 className="text-lg font-semibold text-black mb-2">
                         {plan.name}
                       </h3>
-                      <p className="text-sm text-gray-400 mb-3">
+                      <p className="text-sm text-gray-600 mb-3">
                         {plan.description}
                       </p>
 
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold text-white">
+                        <span className="text-2xl font-bold text-black">
                           {(plan.amount ?? 0) === 0 ? 'Free' : formatCurrency(plan.amount ?? 0)}
                         </span>
                         {(plan.amount ?? 0) > 0 && (
-                          <span className="text-sm text-gray-400">
+                          <span className="text-sm text-gray-600">
                             per {plan.interval ?? 'month'}
                           </span>
                         )}
@@ -334,7 +334,7 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
                         {plan.features.map((feature, index) => (
                           <div key={index} className="flex items-center gap-2">
                             <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                            <span className="text-sm text-gray-300">{feature}</span>
+                            <span className="text-sm text-gray-600">{feature}</span>
                           </div>
                         ))}
                       </div>
@@ -345,10 +345,10 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
                       disabled={isCurrent || upgradeLoading}
                       className={`w-full rounded-full transition-all ${
                         isCurrent
-                          ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                          ? 'bg-gray-700 text-gray-600 cursor-not-allowed'
                           : (plan.amount ?? 0) === 0
-                          ? 'gradient-silver border border-gray-600 text-white hover:bg-gray-800'
-                          : 'gradient-silver text-white hover:text-white hover:opacity-90 border-0'
+                          ? 'gradient-silver border border-gray-600 text-black hover:bg-gray-800'
+                          : 'gradient-silver text-black hover hover:opacity-90 border-0'
                       }`}
                     >
                       {upgradeLoading ? (
@@ -376,8 +376,8 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
       <div className="relative w-full rounded-2xl overflow-hidden gradient-silver shadow-lg border border-gray-600">
         <div className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <CreditCard className="w-6 h-6 text-white" />
-            <h2 className="text-xl denton-condensed text-white">Billing History</h2>
+            <CreditCard className="w-6 h-6 text-black" />
+            <h2 className="text-xl denton-condensed text-black">Billing History</h2>
           </div>
 
           {invoicesLoading ? (
@@ -394,10 +394,10 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
                   className="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg border border-gray-700"
                 >
                   <div>
-                    <p className="text-sm text-white">
+                    <p className="text-sm text-black">
                       {formatCurrency(invoice.amountPaid)}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-600">
                       {formatDate(invoice.createdAt)}
                     </p>
                   </div>
@@ -405,8 +405,8 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
                     <Badge
                       className={
                         invoice.status === 'paid'
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-600 text-white'
+                          ? 'bg-green-600 text-black'
+                          : 'bg-gray-600 text-black'
                       }
                     >
                       {invoice.status}
@@ -416,7 +416,7 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
                         asChild
                         variant="outline"
                         size="sm"
-                        className="bg-transparent border-gray-600 text-white hover:bg-gray-800 rounded-full"
+                        className="bg-transparent border-gray-600 text-black hover:bg-gray-800 rounded-full"
                       >
                         <a href={invoice.hostedInvoiceUrl} target="_blank" rel="noopener noreferrer">
                           View
@@ -430,7 +430,7 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
           ) : (
             <div className="text-center py-8">
               <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-              <p className="text-sm text-gray-400 mb-1">No billing history available</p>
+              <p className="text-sm text-gray-600 mb-1">No billing history available</p>
               <p className="text-xs text-gray-500">
                 Your invoices will appear here once you upgrade
               </p>
