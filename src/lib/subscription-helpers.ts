@@ -19,6 +19,12 @@ export async function getUserSubscription(userId: string) {
       currency: plans.currency,
       interval: plans.interval,
     },
+    usage: {
+      total_seconds_processed: subscriptions.total_seconds_processed,
+      max_total_seconds_processed: plans.max_total_seconds_processed,
+      max_active_streams: plans.max_active_streams,
+      max_streams: plans.max_streams,
+    },
     users: {
       email: users.email,
       name: users.name,

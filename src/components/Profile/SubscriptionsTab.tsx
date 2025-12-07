@@ -88,8 +88,8 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
     try {
       await redirectToCheckout({
         priceId: planId,
-        successUrl: `${window.location.origin}/Profile?tab=subscriptions&success=true`,
-        cancelUrl: `${window.location.origin}/Profile?tab=subscriptions&canceled=true`,
+        successUrl: `${window.location.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/checkout/cancel`,
       });
     } catch (error) {
       console.error('Checkout error:', error);
@@ -101,7 +101,7 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
 
   const handleBillingPortal = async () => {
     try {
-      await redirectToPortal(`${window.location.origin}/Profile?tab=subscriptions`);
+      await redirectToPortal(`${window.location.origin}/Dashboard`);
     } catch (error) {
       console.error('Portal error:', error);
       toast.error('Failed to open billing portal. Please try again.');

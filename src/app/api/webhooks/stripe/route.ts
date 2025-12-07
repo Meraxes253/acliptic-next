@@ -17,6 +17,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Verify webhook secret exists
+    if (!STRIPE_CONFIG.webhookSecret) {
+      console.error("STRIPE_WEBHOOK_SECRET is not configured")
+      return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 })
+    }
+
     const event = stripe.webhooks.constructEvent(body, signature, STRIPE_CONFIG.webhookSecret)
     console.log(`[Webhook] Received event: ${event.type}`)
 
@@ -63,7 +69,7 @@ export async function POST(req: NextRequest) {
           .where(eq(subscriptions.userId, userId))
 
           // if record exists just update it
-          if (user_record[0].userId){
+          if (user_record.length > 0 && user_record[0].userId){
               console.log('Subscription record already exists updating it')
 
              await db.update(subscriptions) // Specify the table to update
@@ -118,6 +124,7 @@ export async function POST(req: NextRequest) {
           console.log(`[Webhook] Invoice paid: ${paidInvoice.id} - PROVISIONING ACCESS`)
   
           //console.log(`[Webhook] Full paid invoice object:`, JSON.stringify(paidInvoice, null, 2))
+        break
 
       // NOTE : DONT FORGET TO HANDLE invoice payment failed , DOES that trigger  customer.subscription.deleted ? in that case no need to deal with it seperately
       case "customer.subscription.deleted":
@@ -127,16 +134,17 @@ export async function POST(req: NextRequest) {
 
         // set subscription to inactive
 
-        await db.update(subscriptions) 
-          .set({ 
+        await db.update(subscriptions)
+          .set({
             is_active:  false,
             priceId: "",
             total_seconds_processed : 0,
             currentPeriodStart: null,
             currentPeriodEnd: null
-          
+
           }) // Set the new values for the columns
-          .where(eq(subscriptions.id, subscription.id));
+          .where(eq(subscriptions.stripeSubscriptionId, subscription.id));
+        break
 
       case "customer.subscription.updated":
         subscription = event.data.object as Stripe.Subscription
@@ -158,18 +166,19 @@ export async function POST(req: NextRequest) {
                 ? new Date(subscriptionItem.current_period_end * 1000)
                 : null
                 
-              await db.update(subscriptions) 
-              .set({ 
+              await db.update(subscriptions)
+              .set({
                 stripeCustomerId: subscription.customer as string,
                 is_active: subscription.status === "active" ? true : false,
                 priceId: subscription.items.data[0]?.price.id || "",
                 currentPeriodStart,
                 currentPeriodEnd,
                 total_seconds_processed : 0
-              
+
               }) // Set the new values for the columns
-              .where(eq(subscriptions.id, subscription.id));
+              .where(eq(subscriptions.stripeSubscriptionId, subscription.id));
         }
+        break
 
       default:
         console.log(`[Webhook] Unhandled event type: ${event.type}`)
