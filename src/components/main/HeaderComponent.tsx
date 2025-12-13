@@ -3,9 +3,11 @@ import { useRouter } from 'next/navigation';
 
 const StreamingHeroSection = () => {
   const router = useRouter();
-  const [scrolled, setScrolled] = useState(false);
-  const [animationComplete, setAnimationComplete] = useState(false);
+  // Start directly in the "after animation" state - no transition animation
+  const [scrolled, setScrolled] = useState(true);
+  const [animationComplete, setAnimationComplete] = useState(true);
 
+  /* COMMENTED OUT: Full animation from initial to scrolled state
   useEffect(() => {
     // Store the pending scroll target
     let pendingScrollTarget: string | null = null;
@@ -144,6 +146,7 @@ const StreamingHeroSection = () => {
       document.body.style.width = '';
     };
   }, [scrolled, animationComplete]);
+  */
 
   return (
     <div className="relative min-h-screen bg-gray-100 dark:bg-black overflow-hidden">
