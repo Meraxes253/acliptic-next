@@ -45,6 +45,18 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-white flex">
+            <Link href='/'>
+                <Image
+                    src="/AElogo.svg"
+                    alt="Logo"
+                    width={45}
+                    height={43}
+                    className="absolute top-5 left-8"
+                    priority
+                    quality={100}
+                    sizes="100vw"
+                />
+            </Link>   
             <Toaster position="top-right" />
             
             {/* Left Side - Image */}

@@ -101,11 +101,12 @@ export default function ProfileDropdown({
 
   const handleManualLogout = async () => {
     try {
+      // NextAuth will handle the redirect to '/'
       await SignOutAction();
-      router.push('/');
     } catch (error) {
       console.error('Error during logout:', error);
-      router.replace('/');
+      // Fallback navigation if something goes wrong
+      router.push('/');
     }
   };
 

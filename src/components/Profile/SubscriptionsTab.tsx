@@ -101,7 +101,8 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
 
   const handleBillingPortal = async () => {
     try {
-      await redirectToPortal(`${window.location.origin}/Dashboard`);
+      // Redirect back to Dashboard with subscriptions tab active
+      await redirectToPortal(`${window.location.origin}/Studio`);
     } catch (error) {
       console.error('Portal error:', error);
       toast.error('Failed to open billing portal. Please try again.');
@@ -218,7 +219,7 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
                 onClick={handleBillingPortal}
                 variant="outline"
                 size="sm"
-                className="bg-transparent border-gray-600 text-black hover:bg-gray-800 rounded-full"
+                className="bg-transparent border-gray-600 text-black hover:bg-gray-600 rounded-full"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Manage Billing
@@ -345,7 +346,7 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
                       disabled={isCurrent || upgradeLoading}
                       className={`w-full rounded-full transition-all ${
                         isCurrent
-                          ? 'bg-gray-700 text-gray-600 cursor-not-allowed'
+                          ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                           : (plan.amount ?? 0) === 0
                           ? 'gradient-silver border border-gray-600 text-black hover:bg-gray-800'
                           : 'gradient-silver text-black hover hover:opacity-90 border-0'
@@ -360,7 +361,7 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
                       ) : (
                         <>
                           <Zap className="w-4 h-4 mr-2" />
-                          Upgrade Now
+                          change plan
                         </>
                       )}
                     </Button>
@@ -371,73 +372,6 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
           </div>
         </div>
       )}
-
-      {/* Billing History */}
-      <div className="relative w-full rounded-2xl overflow-hidden gradient-silver shadow-lg border border-gray-600">
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <CreditCard className="w-6 h-6 text-black" />
-            <h2 className="text-xl denton-condensed text-black">Billing History</h2>
-          </div>
-
-          {invoicesLoading ? (
-            <div className="space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <SkeletonLoader key={i} className="h-12 w-full rounded" />
-              ))}
-            </div>
-          ) : invoices && invoices.length > 0 ? (
-            <div className="space-y-3">
-              {invoices.map((invoice) => (
-                <div
-                  key={invoice.id}
-                  className="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg border border-gray-700"
-                >
-                  <div>
-                    <p className="text-sm text-black">
-                      {formatCurrency(invoice.amountPaid)}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      {formatDate(invoice.createdAt)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge
-                      className={
-                        invoice.status === 'paid'
-                          ? 'bg-green-600 text-black'
-                          : 'bg-gray-600 text-black'
-                      }
-                    >
-                      {invoice.status}
-                    </Badge>
-                    {invoice.hostedInvoiceUrl && (
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="sm"
-                        className="bg-transparent border-gray-600 text-black hover:bg-gray-800 rounded-full"
-                      >
-                        <a href={invoice.hostedInvoiceUrl} target="_blank" rel="noopener noreferrer">
-                          View
-                        </a>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-              <p className="text-sm text-gray-600 mb-1">No billing history available</p>
-              <p className="text-xs text-gray-500">
-                Your invoices will appear here once you upgrade
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

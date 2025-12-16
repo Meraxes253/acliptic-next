@@ -23,7 +23,7 @@ export default function CheckoutCancelPage() {
               <Link href="/pricing">Try Again</Link>
             </Button>
             <Button variant="outline" asChild className="flex-1 bg-transparent">
-              <Link href="/">Go Home</Link>
+              <Link href="/Studio">Go back to Studio</Link>
             </Button>
           </div>
         </CardContent>

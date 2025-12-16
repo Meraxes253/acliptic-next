@@ -70,3 +70,64 @@ export async function hasActiveSubscription(userId: string): Promise<boolean> {
 export async function getAvailablePlans() {
   return await db.select().from(plans).where(eq(plans.active, true))
 }
+
+// Create free subscription for new user (no Stripe involvement)
+export async function createFreeSubscription(userId: string) {
+  try {
+    // Get the FREE plan from database
+    const freePlan = await db
+      .select()
+      .from(plans)
+      .where(eq(plans.name, 'FREE'))
+      .limit(1)
+
+    if (!freePlan || freePlan.length === 0) {
+      throw new Error('FREE plan not found in database. Please create it first.')
+    }
+
+    // Create subscription record for free tier
+    const currentDate = new Date()
+    const oneYearLater = new Date()
+    oneYearLater.setFullYear(currentDate.getFullYear() + 1)
+
+    const result = await db.insert(subscriptions).values({
+      userId: userId,
+      stripeSubscriptionId: `free_${userId}_${Date.now()}`, // Unique ID for free subscriptions
+      stripeCustomerId: '', // No Stripe customer for free tier
+      is_active: true,
+      priceId: freePlan[0].id,
+      currentPeriodStart: currentDate,
+      currentPeriodEnd: oneYearLater,
+      total_seconds_processed: 0,
+    }).returning()
+
+    console.log(`[Subscription] Created free subscription for user ${userId}`)
+    return result[0]
+  } catch (error) {
+    console.error('Error creating free subscription:', error)
+    throw error
+  }
+}
+
+// Ensure user has a subscription (create free if none exists)
+export async function ensureUserHasSubscription(userId: string) {
+  const subscription = await getUserSubscription(userId)
+
+  if (!subscription) {
+    console.log(`[Subscription] User ${userId} has no subscription, creating free tier`)
+    return await createFreeSubscription(userId)
+  }
+
+  return subscription
+}
+
+// Get FREE plan from database
+export async function getFreePlan() {
+  const result = await db
+    .select()
+    .from(plans)
+    .where(eq(plans.name, 'FREE'))
+    .limit(1)
+
+  return result[0] || null
+}

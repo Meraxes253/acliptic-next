@@ -1,12 +1,10 @@
 'use server'
 
 import { signOut } from '@/auth';
-import { redirect } from 'next/navigation';
 
 export async function SignOutAction() {
-    // CONNECT DB
-    await signOut();
-
-    // Redirect to the home page
-    redirect('/');
+    // Sign out the user
+    // Don't use redirect() here - let the client handle navigation
+    // NextAuth v5 handles the redirect internally
+    await signOut({ redirectTo: '/' });
 }
