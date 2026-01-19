@@ -17,14 +17,12 @@ export default function DashboardSidebar({ activeTab, setActiveTab }: DashboardS
 
   const handleManualLogout = async () => {
     try {
-      // Submit the form action
+      // NextAuth will handle the redirect to '/'
       await SignOutAction();
-      // Manual navigation as fallback
-      router.push('/');
     } catch (error) {
       console.error('Error during logout:', error);
-      // Fallback direct navigation
-      router.replace('/');
+      // Fallback navigation if something goes wrong
+      router.push('/');
     }
   };
 

@@ -47,7 +47,7 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
   const [step, setStep] = useState('social'); // Changed initial step to social
   const [progressBarWidth, setProgressBarWidth] = useState(0);
   const [socialConnectionsLoading, setSocialConnectionsLoading] = useState(true);
-  
+
   // Add state for social connections
   const [socialConnections, setSocialConnections] = useState({
     youtube: false,
@@ -64,28 +64,28 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      
+
         try {
             // ASSUME USER AUTHENTICATED AUTH CHECK DONE IN MIDDLEWARE
 
              // Fetch social media handles using the API route
             const response = await fetch(`/api/streamers/${user_id}/social_media_handles`);
-             
+
             if (!response.ok) {
             throw new Error(`Error fetching social media handles: ${response.statusText}`);
             }
-            
+
             const socialData = await response.json();
-        
+
             // Check for YouTube and Instagram connections (platform_id: 701 for YouTube, 703 for Instagram)
             const youtubeConnected = socialData?.data?.some((item: { platform_id: number; access_token: string | null; connection_status: string }) => 
                 item.platform_id === 701 && item.access_token && item.connection_status !== "disconnected"
             );
-        
+
             const instagramConnected = socialData?.data?.some((item: { platform_id: number; access_token: string | null; connection_status: string }) => 
                 item.platform_id === 703 && item.access_token && item.connection_status !== "disconnected"
             );
-            
+
             setSocialConnections({
             youtube: youtubeConnected || false,
             instagram: instagramConnected || false
@@ -97,7 +97,7 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
             setSocialConnectionsLoading(false);
           }
         };
-    
+
         fetchUserData();
 
   }, [])
@@ -144,7 +144,6 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
         setSocialConnectionsLoading(false);
       }
     };
-
     fetchUserData();
   }, []);
   */
@@ -166,6 +165,28 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
   }, [step]);
 
   // CHANGED FOR DRIZZLE
+  const handleSkip = async () => {
+    setLoading(true);
+    try {
+      // Mark onboarding as complete without filling profile details
+      await fetch("/api/user/updateOnboardingStatus", {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: user_id,
+          username: "",
+          phone_number: "",
+          youtube_channel_id: ""
+        })
+      });
+      router.push("/Studio");
+    } catch (error) {
+      console.error("Error skipping profile setup:", error);
+      alert("Error skipping profile setup.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleNext = async (e: React.FormEvent) => {
 
     e.preventDefault();
@@ -188,9 +209,9 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
               youtube_channel_id: profile.youtube_channel_id // Add this line
             })
           })
-        
+
           res = await res.json()
-        
+
           console.log(res)
 
           router.push("/Studio");
@@ -208,7 +229,6 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
       setStep('profile');
       return;
     }
-
     setLoading(true);
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -216,7 +236,6 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
         alert("User not authenticated.");
         return;
       }
-
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           username: profile.username,
@@ -224,7 +243,6 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
           onboarding: true,
         },
       });
-
       if (updateError) throw updateError;
       router.push("/Dashboard");
     } catch (error) {
@@ -233,7 +251,6 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
     } finally {
       setLoading(false);
     }
-
     */
   };
 
@@ -254,7 +271,7 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
           alt="Side Effect Logo" 
           className="mb-2 h-16 sm:h-20"
         />
-        
+
         <div className="flex mb-4 sm:mb-8">
           <img src="/t1.jpg" alt="" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full" />
           <img src="/t2.jpg" alt="" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full -ml-2" />
@@ -277,10 +294,10 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
                     <Button
                       type="button"
                       onClick={() => handleSocialAuth('instagram')}
-                      className={`w-full h-20 sm:h-24 flex items-start justify-start pt-4 pl-4 ${
-                        socialConnections.instagram 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                          : 'bg-[#F5F5FF] hover:bg-[#EEEEFF] text-black'
+                      className={`w-full h-20 sm:h-24 flex items-start justify-start pt-4 pl-4 rounded-2xl ${
+                        socialConnections.instagram
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          : 'gradient-silver text-white hover:opacity-90'
                       }`}
                       disabled={socialConnections.instagram || socialConnectionsLoading}
                     >
@@ -297,10 +314,10 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
                     <Button
                       type="button"
                       onClick={() => handleSocialAuth('youtube')}
-                      className={`w-full h-20 sm:h-24 flex items-start justify-start pt-4 pl-4 ${
-                        socialConnections.youtube 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                          : 'bg-[#F5F5FF] hover:bg-[#EEEEFF] text-black'
+                      className={`w-full h-20 sm:h-24 flex items-start justify-start pt-4 pl-4 rounded-2xl ${
+                        socialConnections.youtube
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          : 'gradient-silver text-white hover:opacity-90'
                       }`}
                       disabled={socialConnections.youtube || socialConnectionsLoading}
                     >
@@ -315,19 +332,29 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
                 </div>
 
                 <div className="space-y-4">
-                  <Button 
-                    type="submit" 
-                    className="w-full sm:w-auto px-8 bg-black text-white hover:bg-gray-800 hel-font text-sm sm:text-base"
-                    disabled={loading || socialConnectionsLoading}
-                  >
-                    Next
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      type="submit"
+                      className="flex-1 sm:flex-none sm:px-8 gradient-silver text-white hover:opacity-90 rounded-full border-0 hel-font text-sm sm:text-base"
+                      disabled={loading || socialConnectionsLoading}
+                    >
+                      Next
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleSkip}
+                      className="flex-1 sm:flex-none sm:px-8 gradient-silver text-white hover:opacity-90 rounded-full border-0 hel-font text-sm sm:text-base"
+                      disabled={loading || socialConnectionsLoading}
+                    >
+                      Skip
+                    </Button>
+                  </div>
 
                   <div className="flex gap-2 relative h-1">
-                    <div className="h-full w-[160px] sm:w-[320px] bg-black rounded" />
+                    <div className="h-full w-[160px] sm:w-[320px] gradient-silver rounded" />
                     <div className="h-full w-[160px] sm:w-[320px] bg-gray-200 rounded overflow-hidden">
-                      <div 
-                        className="h-full bg-black transition-all duration-700 ease-in-out" 
+                      <div
+                        className="h-full gradient-silver transition-all duration-700 ease-in-out"
                         style={{ width: `${progressBarWidth}%` }}
                       />
                     </div>
@@ -352,7 +379,7 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
                       id="username"
                       value={profile.username}
                       onChange={(e) => setProfile({ ...profile, username: e.target.value })}
-                      className="mt-2 text-sm sm:text-base"
+                      className="mt-2 text-sm sm:text-base gradient-silver text-white placeholder-gray-300 border-0 rounded-full focus:ring-2 focus:ring-gray-400"
                       placeholder="Your Twitch Username"
                     />
                   </div>
@@ -362,7 +389,7 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
                       id="youtube_channel_id"
                       value={profile.youtube_channel_id}
                       onChange={(e) => setProfile({ ...profile, youtube_channel_id: e.target.value })}
-                      className="mt-2 text-sm sm:text-base"
+                      className="mt-2 text-sm sm:text-base gradient-silver text-white placeholder-gray-300 border-0 rounded-full focus:ring-2 focus:ring-gray-400"
                       placeholder="Your YouTube Channel ID"
                     />
                   </div>
@@ -372,7 +399,7 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
                       id="phoneNumber"
                       value={profile.phoneNumber}
                       onChange={(e) => setProfile({ ...profile, phoneNumber: e.target.value })}
-                      className="mt-2 text-sm sm:text-base"
+                      className="mt-2 text-sm sm:text-base gradient-silver text-white placeholder-gray-300 border-0 rounded-full focus:ring-2 focus:ring-gray-400"
                       placeholder="Phone Number"
                     />
                   </div>
@@ -429,7 +456,7 @@ export default function ProfileSetupPage({user_id} : ProfileSetupPageProps) {
             </div>
           </div>
         </div>
-        
+
         {/* Navigation Dots */}
         <div className="flex gap-2 justify-center mt-6 sm:mt-8">
           {testimonials.map((_, index) => (

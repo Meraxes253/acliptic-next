@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
-import { hash } from "bcryptjs"
+import { hash } from "@/lib/password"
 import { db } from "@/db"
 import { users } from "@/db/schema/users"
 import { eq } from "drizzle-orm"
+import { createFreeSubscription } from "@/lib/subscription-helpers"
 
 export async function POST(request: Request) {
   try {
@@ -22,16 +23,32 @@ export async function POST(request: Request) {
     }
 
     // Hash the password
-    const hashedPassword = await hash(password, 10)
+    const hashedPassword = await hash(password)
 
     // Create the user
-
-    await db.insert(users).values({
+    const newUser = await db.insert(users).values({
       email,
       password: hashedPassword,
-    })
+    }).returning()
 
-    return NextResponse.json({ message: "User created successfully" }, { status: 201 })
+    if (!newUser || newUser.length === 0) {
+      return NextResponse.json({ message: "Failed to create user" }, { status: 500 })
+    }
+
+    // Automatically create free subscription for new user
+    try {
+      await createFreeSubscription(newUser[0].id)
+      console.log(`[Registration] Created free subscription for new user ${newUser[0].id}`)
+    } catch (subscriptionError) {
+      console.error("Error creating free subscription:", subscriptionError)
+      // Don't fail registration if subscription creation fails
+      // User can still use the app, and we can retry subscription creation later
+    }
+
+    return NextResponse.json({
+      message: "User created successfully",
+      userId: newUser[0].id
+    }, { status: 201 })
   } catch (error) {
     console.error("Error creating user:", error)
     return NextResponse.json({ message: "Something went wrong" }, { status: 500 })

@@ -1,7 +1,7 @@
 import React from "react";
 import Image from 'next/image';
 import Link from 'next/link';
-import SignupForm from "@/components/SignUpForm";
+import SignupForm from "@/components/Signup/SignUpForm";
 import { auth } from "@/auth";
 
 import { db } from "@/db";
@@ -47,10 +47,10 @@ const SignupPage = async () => {
         <div>
             <Link href='/'>
                 <Image
-                    src="/AElogo2.png"
+                    src="/AElogo.svg"
                     alt="Logo"
-                    width={180}
-                    height={180}
+                    width={45}
+                    height={43}
                     className="absolute top-5 left-8"
                     priority
                     quality={100}

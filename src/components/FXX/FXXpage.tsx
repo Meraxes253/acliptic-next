@@ -1,7 +1,7 @@
 'use client'
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import Navigation from '@/components/mainNavigation';
+import Navigation from '@/components/main/mainNavigation';
 import { useRouter } from 'next/navigation';
 
 // First, let's export the videos data so it can be shared

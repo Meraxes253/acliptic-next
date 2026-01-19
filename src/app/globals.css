@@ -2,9 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-
-.hel-font {
-  font-family: var(--font-hel);
+.denton-condensed {
+  font-family: var(--font-denton-condensed);
 }
 
 
@@ -124,4 +123,15 @@ html.lenis body {
 
 .animate-fade-up {
   animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.gradient-silver {
+  background: linear-gradient(to right, #C8C2C9 0%, #7F8A8F 75%, #969DA5 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(to right, #C8C2C9 0%, #7F8A8F 75%, #969DA5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

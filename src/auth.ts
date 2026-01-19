@@ -4,7 +4,7 @@ import { db } from "./db"
 import Twitch from "@auth/core/providers/twitch"
 import Google from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { compare } from "bcryptjs"
+import { compare } from "@/lib/password"
 import { eq } from "drizzle-orm"
 import { users } from "./db/schema/users"
 import { signInSchema } from "./lib/zod"
@@ -44,9 +44,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user?.password) {
           throw new Error("Password not found for user");
         }
-        
+
         const passwordCorrect = await compare(password, user.password);
-        
+
         if (!passwordCorrect) {
           throw new Error("Invalid email or password")
         }

@@ -1,0 +1,412 @@
+# STRIPE PAYMENT SYSTEM ANALYSIS & COMPREHENSIVE FIX PLAN
+
+## CURRENT SETUP OVERVIEW
+
+### 1. EXISTING COMPONENTS
+
+**Frontend Components:**
+- `src/app/Pricing/page.tsx` - Main pricing page with plan cards
+- `src/components/Profile/SubscriptionsTab.tsx` - Subscription management UI (currently placeholder)
+
+**Backend APIs:**
+- `src/app/api/checkout/route.ts` - Creates Stripe checkout sessions
+- `src/app/api/portal/route.ts` - Creates billing portal sessions
+- `src/app/api/webhooks/stripe/route.ts` - Handles Stripe webhooks
+
+**Helper Libraries:**
+- `src/lib/stripe.ts` - Stripe configuration
+- `src/lib/checkout-helpers.ts` - Client-side checkout utilities
+- `src/lib/stripe-customer.ts` - Customer management
+- `src/lib/subscription-helpers.ts` - Subscription data helpers
+
+**Database Schema:**
+- `users` table with `stripeCustomerId` field
+- `plans` table for subscription plans
+- `customers` table for Stripe customer data
+- `subscriptions` table for active subscriptions
+- `invoices` table for billing history
+
+### 2. IDENTIFIED CRITICAL ISSUES & ERRORS
+
+#### A. IMPORT/MODULE ERRORS:
+1. **Missing/Incorrect Imports:**
+   - `src/lib/stripe-customer.ts` line 56: imports non-existent `customers` table
+   - Inconsistent table references between files
+
+2. **Edge Runtime Compatibility:**
+   - `bcryptjs` not compatible with Edge Runtime (auth.ts line 7)
+   - Node.js APIs being used in Edge Runtime contexts
+
+#### B. DATABASE SCHEMA INCONSISTENCIES:
+1. **Duplicate Customer Storage:**
+   - Customer data stored in both `users` table (`stripeCustomerId`) AND `customers` table
+   - Functions reference wrong table (getCustomerByUserId uses customers vs users)
+
+2. **Missing Foreign Key Relationships:**
+   - No proper references between users/customers/subscriptions
+
+#### C. WEBHOOK IMPLEMENTATION ISSUES:
+1. **Database Query Errors:**
+   - Line 66: `user_record[0].userId` will throw error if no record exists
+   - Line 139: `.where(eq(subscriptions.id, subscription.id))` should use `stripeSubscriptionId`
+   - Missing break statements between cases (lines 122, 141)
+
+2. **Incomplete Event Handling:**
+   - `invoice.paid` event has no implementation body
+   - `customer.created/updated` events only log, no DB updates
+
+#### D. PRICING CONFIGURATION PROBLEMS:
+1. **Hardcoded Mock Data:**
+   - Pricing page uses mock user and fake Stripe price IDs
+   - No connection to database-stored plans
+
+2. **Environment Variable Issues:**
+   - Missing NEXT_PUBLIC_SITE_URL in checkout redirect URLs
+   - Inconsistent domain configurations
+
+#### E. SUBSCRIPTION MANAGEMENT GAPS:
+1. **SubscriptionsTab Component:**
+   - Currently shows placeholder/hardcoded data
+   - No real subscription status fetching
+   - No actual upgrade/downgrade functionality
+
+2. **Missing User Experience Flow:**
+   - No proper success/error handling after checkout
+   - No subscription status indicators throughout app
+   - No usage tracking or limits enforcement
+
+### 3. SECURITY CONCERNS
+
+1. **Webhook Security:**
+   - Proper signature verification implemented ✓
+   - But error handling could expose internal details
+
+2. **Authentication:**
+   - Session management appears correct
+   - Customer ID properly linked to user sessions
+
+### 4. FUNCTIONAL GAPS
+
+1. **Plan Management:**
+   - No admin interface for plan configuration
+   - Plans hardcoded in frontend instead of fetched from DB
+
+2. **Billing Portal Integration:**
+   - Portal access exists but not integrated into UI
+   - No clear subscription management flow
+
+3. **Usage Tracking:**
+   - Schema includes usage fields (`total_seconds_processed`, limits)
+   - But no enforcement or tracking implementation
+
+4. **Error Handling:**
+   - Inconsistent error responses across APIs
+   - No user-friendly error messages
+
+## COMPREHENSIVE FIX PLAN
+
+### PHASE 1: CRITICAL BUG FIXES (Day 1-2)
+
+#### 1.1 Fix Database Schema Issues
+```sql
+-- Remove duplicate customer table, use users.stripeCustomerId only
+DROP TABLE IF EXISTS customers;
+
+-- Update subscriptions table to reference users directly
+ALTER TABLE subscriptions
+  DROP COLUMN IF EXISTS stripeCustomerId,
+  ADD CONSTRAINT fk_subscriptions_user
+    FOREIGN KEY (userId) REFERENCES users(id);
+```
+
+#### 1.2 Fix Import/Reference Errors
+**File: `src/lib/stripe-customer.ts`**
+- Remove references to `customers` table
+- Update all functions to use `users` table
+- Fix `getCustomerByUserId` function
+
+**File: `src/lib/subscription-helpers.ts`**
+- Fix `getCustomerByUserId` to query `users` table
+- Remove `customers` import
+
+#### 1.3 Fix Webhook Critical Bugs
+**File: `src/app/api/webhooks/stripe/route.ts`**
+- Fix line 66: Add null check before accessing `user_record[0]`
+- Fix line 139: Use `stripeSubscriptionId` instead of `id`
+- Add missing break statements
+- Complete `invoice.paid` event handler
+
+#### 1.4 Fix Auth Runtime Issues
+**File: `src/auth.ts`**
+- Replace `bcryptjs` with Web Crypto API compatible alternative
+- Or configure auth to run in Node.js runtime only
+
+### PHASE 2: SUBSCRIPTION MANAGEMENT UPGRADE (Day 3-4)
+
+#### 2.1 Create Real SubscriptionsTab Component
+**File: `src/components/Profile/SubscriptionsTab.tsx`**
+
+```typescript
+interface SubscriptionsTabProps {
+  user_id: string;
+}
+
+export default function SubscriptionsTab({ user_id }: SubscriptionsTabProps) {
+  // Real subscription fetching
+  const { data: subscription, isLoading } = useSWR(
+    `/api/user/subscription`,
+    fetcher
+  );
+
+  // Real plan data
+  const { data: availablePlans } = useSWR(
+    `/api/plans`,
+    fetcher
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Current Subscription Status */}
+      <CurrentSubscriptionCard subscription={subscription} />
+
+      {/* Plan Upgrade/Downgrade Options */}
+      <PlanOptionsGrid
+        currentPlan={subscription?.plan}
+        availablePlans={availablePlans}
+        onPlanSelect={handlePlanChange}
+      />
+
+      {/* Billing History */}
+      <BillingHistoryTable userId={user_id} />
+
+      {/* Subscription Actions */}
+      <SubscriptionActions
+        subscription={subscription}
+        onCancel={handleCancel}
+        onReactivate={handleReactivate}
+        onBillingPortal={handleBillingPortal}
+      />
+    </div>
+  );
+}
+```
+
+#### 2.2 Create Supporting API Endpoints
+
+**New File: `src/app/api/user/subscription/route.ts`**
+```typescript
+export async function GET() {
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  const subscription = await getUserSubscription(userId);
+  return Response.json(subscription);
+}
+```
+
+**New File: `src/app/api/plans/route.ts`**
+```typescript
+export async function GET() {
+  const plans = await getAvailablePlans();
+  return Response.json(plans);
+}
+```
+
+### PHASE 3: UI/UX ENHANCEMENT (Day 5-6)
+
+#### 3.1 Integrate with Current Design System
+
+**Design Tokens to Use:**
+- `gradient-silver` class for primary buttons
+- `denton-condensed` font for headings
+- Dark/light theme support
+- Consistent card layouts with rounded corners
+
+**Component Structure:**
+```typescript
+// Current Subscription Card - matches LibraryPage card style
+<div className="relative w-full rounded-2xl overflow-hidden bg-black shadow-lg border border-gray-600">
+  <div className="p-6">
+    <h2 className="text-2xl denton-condensed mb-4">Current Plan</h2>
+    {/* Plan details with gradient badges */}
+  </div>
+</div>
+
+// Upgrade Button - matches current button style
+<Button className="gradient-silver text-white hover:text-white hover:opacity-90 border-0 rounded-full">
+  Upgrade Now
+</Button>
+```
+
+#### 3.2 Create Subscription Status Indicators
+
+**Global Subscription Context:**
+```typescript
+// src/contexts/SubscriptionContext.tsx
+export const SubscriptionProvider = ({ children }) => {
+  const [subscription, setSubscription] = useState(null);
+  // ... subscription logic
+  return (
+    <SubscriptionContext.Provider value={{ subscription }}>
+      {children}
+    </SubscriptionContext.Provider>
+  );
+};
+```
+
+**Usage Throughout App:**
+- Add plan badges to navigation
+- Show usage meters for limits
+- Display upgrade prompts for restricted features
+
+### PHASE 4: BUSINESS LOGIC IMPLEMENTATION (Day 7-8)
+
+#### 4.1 Plan Limits Enforcement
+
+**Usage Tracking:**
+```typescript
+// src/lib/usage-tracking.ts
+export async function trackUsage(userId: string, seconds: number) {
+  const subscription = await getUserSubscription(userId);
+  const updatedUsage = subscription.total_seconds_processed + seconds;
+
+  // Check limits
+  if (updatedUsage > subscription.plan.max_total_seconds_processed) {
+    throw new Error('Usage limit exceeded');
+  }
+
+  // Update usage
+  await updateUsage(userId, updatedUsage);
+}
+```
+
+**Feature Gates:**
+```typescript
+// src/components/FeatureGate.tsx
+export function FeatureGate({ feature, children }) {
+  const { subscription } = useSubscription();
+  const hasAccess = checkFeatureAccess(subscription, feature);
+
+  if (!hasAccess) {
+    return <UpgradePrompt feature={feature} />;
+  }
+
+  return children;
+}
+```
+
+#### 4.2 Complete Pricing Page Integration
+
+**Update Pricing Page:**
+- Fetch plans from database instead of hardcoded
+- Add real user authentication
+- Connect to actual checkout flow
+- Add success/error handling
+
+### PHASE 5: TESTING & DEPLOYMENT (Day 9-10)
+
+#### 5.1 Testing Checklist
+
+**Unit Tests:**
+- [ ] Webhook event handlers
+- [ ] Subscription helpers
+- [ ] Usage tracking functions
+
+**Integration Tests:**
+- [ ] Complete checkout flow
+- [ ] Subscription upgrades/downgrades
+- [ ] Webhook event processing
+- [ ] Billing portal access
+
+**E2E Tests:**
+- [ ] User signup → subscription → usage flow
+- [ ] Payment failure scenarios
+- [ ] Cancellation and reactivation
+
+#### 5.2 Deployment Preparation
+
+**Environment Variables:**
+```env
+# Required for production
+NEXT_PUBLIC_SITE_URL=https://yourdomain.com
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+```
+
+**Database Migrations:**
+- Run schema fixes
+- Populate plans table with real Stripe price IDs
+- Migrate existing customer data if any
+
+## IMPLEMENTATION PRIORITY ORDER
+
+1. **CRITICAL (Fix Immediately):**
+   - Webhook database errors (crashes on webhook events)
+   - Import/reference errors (breaks builds)
+   - Auth runtime compatibility
+
+2. **HIGH PRIORITY (Next 2-3 days):**
+   - Real subscription data in SubscriptionsTab
+   - Complete checkout flow
+   - Plan management from database
+
+3. **MEDIUM PRIORITY (Following week):**
+   - Usage tracking and enforcement
+   - Enhanced UI/UX consistency
+   - Comprehensive error handling
+
+4. **LOW PRIORITY (Future improvements):**
+   - Admin interface for plan management
+   - Advanced analytics
+   - Multi-currency support
+
+## EFFORT ESTIMATES
+
+- **Phase 1 (Critical Fixes):** 2-3 days
+- **Phase 2 (Subscription Management):** 2-3 days
+- **Phase 3 (UI Enhancement):** 2 days
+- **Phase 4 (Business Logic):** 2-3 days
+- **Phase 5 (Testing):** 2 days
+
+**Total Estimated Time:** 10-13 days for complete implementation
+
+## SUCCESS METRICS
+
+1. **Technical:**
+   - Zero webhook processing errors
+   - 100% test coverage for payment flows
+   - < 200ms API response times
+
+2. **Business:**
+   - Successful subscription signup flow
+   - Accurate billing and usage tracking
+   - Seamless upgrade/downgrade experience
+
+3. **User Experience:**
+   - Clear subscription status visibility
+   - Intuitive plan management interface
+   - Consistent design with existing app
+
+## DEPENDENCIES & BLOCKERS
+
+1. **Stripe Configuration:**
+   - Production webhook endpoints setup
+   - Plan configuration in Stripe Dashboard
+   - Payment method setup
+
+2. **Database Access:**
+   - Migration permissions
+   - Schema update approvals
+   - Backup procedures
+
+3. **Environment Setup:**
+   - Production environment variables
+   - Domain/SSL configuration
+   - Monitoring/logging setup
+
+## RECOMMENDATION
+
+Start with Phase 1 critical fixes immediately as they are blocking webhook functionality and causing build errors. The current subscription system is partially broken and needs urgent attention to prevent data loss and ensure payment processing works correctly.
+
+The SubscriptionsTab component integration should be the next priority as it directly impacts user experience and provides the interface for subscription management that users expect in a modern SaaS application.

@@ -1,5 +1,5 @@
-import Navigation from './mainNavigation';
-import Footer from './Footer';
+import Navigation from './main/mainNavigation';
+import Footer from './main/Footer';
 import { auth } from '@/auth';
 
 interface LayoutProps {

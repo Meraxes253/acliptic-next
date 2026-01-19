@@ -28,7 +28,12 @@ export default function ActionButtons({ autoUploaded = false, user_id }: ActionB
         <p className="text-[12px] font-light hidden md:block">Presets</p>
       </Button>
 
-      <PresetDialog user_id={user_id} isOpen={isDialogOpen} onOpenChange={setIsDialogOpen} />
+      <PresetDialog
+        user_id={user_id}
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        isRequired={false}
+      />
     </div>
   );
 }

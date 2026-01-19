@@ -26,9 +26,23 @@ export async function GET(request: Request) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
-	// ✅ Get the Authorization Code from URL
+	// ✅ Get the Authorization Code and state from URL
 	const url = new URL(request.url);
 	const code = url.searchParams.get("code");
+	const state = url.searchParams.get("state");
+
+	// Parse redirect URL from state
+	let redirectTo = "/Studio?openProfileModal=true&activeTab=integrations";
+	if (state) {
+		try {
+			const stateData = JSON.parse(Buffer.from(state, "base64").toString());
+			if (stateData.redirectTo) {
+				redirectTo = stateData.redirectTo;
+			}
+		} catch (e) {
+			console.error("Failed to parse state:", e);
+		}
+	}
 
 	if (!code) {
 		return NextResponse.json(
@@ -231,8 +245,8 @@ export async function GET(request: Request) {
 			);
 		}
 
-		// Otherwise proceed with the original redirect
-		return NextResponse.redirect(new URL("/Profile", request.url));
+		// Redirect to the original page or default
+		return NextResponse.redirect(new URL(redirectTo, request.url));
 	} catch (error) {
 		console.error("Error checking onboarding status:", error);
 		// Default to onboarding page if there's an error

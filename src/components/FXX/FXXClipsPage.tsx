@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Navigation from '@/components/mainNavigation';
+import Navigation from '@/components/main/mainNavigation';
 import Image from "next/image";
 import { videosData } from './FXXpage';
 

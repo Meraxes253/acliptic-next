@@ -6,7 +6,6 @@ import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { eq } from "drizzle-orm";
 
-
 const LoginPage = async () => {
     const session = await auth()
 
@@ -42,7 +41,7 @@ const LoginPage = async () => {
 
 
     return (
-        <div>
+        <div>    
             <LoginForm />
         </div>
     );

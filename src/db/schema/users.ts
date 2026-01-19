@@ -20,6 +20,7 @@ export const users = pgTable("user", {
 		.$defaultFn(() => crypto.randomUUID()),
 	name: text("name").default(""),
 	email: text("email").unique(),
+	stripeCustomerId: text("stripe_customer_id"),
 	password: text("password"),
 	emailVerified: timestamp("emailVerified", { mode: "date" }),
 	image: text("image").default(""),
@@ -302,3 +303,104 @@ export const commentLike = pgTable("comment_like", {
 		withTimezone: true,
 	}).defaultNow(),
 });
+
+
+// TEST SUBSCRIPTOINS
+
+import {  uuid } from "drizzle-orm/pg-core"
+import { relations } from "drizzle-orm"
+
+// Plans table
+export const plans = pgTable("plans", {
+  id: varchar("id", { length: 255 }).primaryKey(), // Stripe price ID
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  amount: integer("amount").notNull(), // Amount in cents
+  currency: varchar("currency", { length: 3 }).notNull().default("usd"),
+  interval: varchar("interval", { length: 20 }).notNull(), // 'month' or 'year'
+  max_active_streams : integer('max_active_streams'),
+  max_streams : integer('max_streams'),
+  max_total_seconds_processed : integer('max_total_seconds_processed'),
+  intervalCount: integer("interval_count").notNull().default(1),
+  trialPeriodDays: integer("trial_period_days").default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+})
+
+// Customers table
+
+export const customers = pgTable("customers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().unique(),
+  stripeCustomerId: text("stripe_customer_id").notNull().unique(),
+  email: text("email").notNull(),
+  name: text("name"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+})
+
+// Subscriptions table
+
+export const subscriptions = pgTable("subscriptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull(),
+  stripeSubscriptionId: text("stripe_subscription_id").notNull(),
+  stripeCustomerId: text("stripe_customer_id"),
+  is_active: boolean("is_active").notNull(),
+  priceId: text("price_id").notNull(),
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  total_seconds_processed: integer('total_seconds_processed').default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+})
+
+// Invoices table
+export const invoices = pgTable("invoices", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(), // Reference to your existing users table
+  customerId: uuid("customer_id")
+    .notNull()
+    .references(() => customers.id, { onDelete: "cascade" }),
+  subscriptionId: uuid("subscription_id").references(() => subscriptions.id, { onDelete: "set null" }),
+  stripeInvoiceId: varchar("stripe_invoice_id", { length: 255 }).unique().notNull(),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 255 }),
+  amountPaid: integer("amount_paid").notNull(), // Amount in cents
+  amountDue: integer("amount_due").notNull(), // Amount in cents
+  currency: varchar("currency", { length: 3 }).notNull().default("usd"),
+  status: varchar("status", { length: 50 }).notNull(), // draft, open, paid, uncollectible, void
+  hostedInvoiceUrl: text("hosted_invoice_url"),
+  invoicePdf: text("invoice_pdf"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+})
+
+// Relations
+export const customersRelations = relations(customers, ({ many }) => ({
+  subscriptions: many(subscriptions),
+  invoices: many(invoices),
+}))
+
+
+
+export const invoicesRelations = relations(invoices, ({ one }) => ({
+  customer: one(customers, {
+    fields: [invoices.customerId],
+    references: [customers.id],
+  }),
+  subscription: one(subscriptions, {
+    fields: [invoices.subscriptionId],
+    references: [subscriptions.id],
+  }),
+}))
+
+export const plansRelations = relations(plans, ({ many }) => ({
+  subscriptions: many(subscriptions),
+}))
+
+// Types
+export type Plan = typeof plans.$inferSelect
+export type Customer = typeof customers.$inferSelect
+export type Subscription = typeof subscriptions.$inferSelect
+export type Invoice = typeof invoices.$inferSelect

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db"; // Drizzle client
 import { clip, stream, users } from "@/db/schema/users"; // Import your schema
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, desc, asc } from "drizzle-orm";
 
 //done
 const StreamerIdSchema = z
@@ -39,6 +39,14 @@ export async function GET(
 			);
 		}
 
+		// Parse query parameters
+		const { searchParams } = new URL(request.url);
+		const limit = parseInt(searchParams.get('limit') || '0');
+		const offset = parseInt(searchParams.get('offset') || '0');
+		const search = searchParams.get('search') || '';
+		const sortBy = searchParams.get('sortBy') || 'date';
+		const sortOrder = searchParams.get('sortOrder') || 'desc';
+
 		// First, check if the user exists
 		const userData = await db
 			.select()
@@ -55,9 +63,8 @@ export async function GET(
 			);
 		}
 
-		// Get all streams for this user
-		//get clip count and send it down as well
-		const streamsWithClipCounts = await db
+		// Build the base query
+		let query = db
 			.select({
 				stream_id: stream.stream_id,
 				user_id: stream.user_id,
@@ -74,12 +81,50 @@ export async function GET(
 			.from(stream)
 			.leftJoin(clip, eq(clip.stream_id, stream.stream_id))
 			.where(eq(stream.user_id, streamerId))
-			.groupBy(stream.stream_id);
+			.groupBy(stream.stream_id)
+			.$dynamic();
+
+		// Apply search filter if provided
+		if (search) {
+			query = query.having(sql`${stream.stream_title} ILIKE ${`%${search}%`}`);
+		}
+
+		// Apply sorting
+		if (sortBy === 'title') {
+			query = query.orderBy(sortOrder === 'asc' ? asc(stream.stream_title) : desc(stream.stream_title));
+		} else if (sortBy === 'clipCount') {
+			query = query.orderBy(sortOrder === 'asc' ? asc(sql<number>`COUNT(${clip.clip_id})`) : desc(sql<number>`COUNT(${clip.clip_id})`));
+		} else {
+			// Default to date sorting
+			query = query.orderBy(sortOrder === 'asc' ? asc(stream.created_at) : desc(stream.created_at));
+		}
+
+		// Apply pagination if limit is provided
+		if (limit > 0) {
+			query = query.limit(limit).offset(offset);
+		}
+
+		const streamsWithClipCounts = await query;
+
+		// Get total count for pagination
+		const totalCountResult = await db
+			.select({ count: sql<number>`count(DISTINCT ${stream.stream_id})` })
+			.from(stream)
+			.where(eq(stream.user_id, streamerId));
+
+		const totalCount = totalCountResult[0]?.count || 0;
+
 		console.log(streamsWithClipCounts);
 
 		return NextResponse.json({
 			confirmation: "success",
 			data: streamsWithClipCounts,
+			pagination: {
+				total: totalCount,
+				limit: limit,
+				offset: offset,
+				hasMore: limit > 0 ? offset + limit < totalCount : false
+			}
 		});
 	} catch (error) {
 		console.error("Database error:", error);

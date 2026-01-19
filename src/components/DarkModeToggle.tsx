@@ -1,23 +1,38 @@
 'use client';
 
 import { useDarkMode } from '@/contexts/DarkModeContext';
-import { Button } from '@/components/ui/button';
 import { Moon, Sun } from 'lucide-react';
 
 export function DarkModeToggle() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <button
       onClick={toggleDarkMode}
-      className="w-9 h-9 rounded-md relative"
+      className="w-full flex items-center justify-between text-sm text-gray-700 transition-colors duration-200"
     >
-      <Moon className="h-5 w-5 rotate-0 scale-100 transition-all dark:rotate-90 dark:scale-0" />
-      <Sun className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">{isDarkMode ? 'Light mode' : 'Dark mode'}</span>
-    </Button>
+      <div className="flex items-center">
+        {isDarkMode ? (
+          <Moon className="w-4 h-4 mr-3" />
+        ) : (
+          <Sun className="w-4 h-4 mr-3" />
+        )}
+        <span>{isDarkMode ? 'Dark Mode' : 'Light Mode'}</span>
+      </div>
+
+      {/* Toggle Switch */}
+      {/* <div
+        className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${
+          isDarkMode ? 'bg-gray-700' : 'bg-gray-300'
+        }`}
+      >
+        <div
+          className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+            isDarkMode ? 'translate-x-5' : 'translate-x-0.5'
+          }`}
+        />
+      </div> */}
+    </button>
   );
 } 
 
