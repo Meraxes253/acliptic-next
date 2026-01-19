@@ -126,7 +126,7 @@ export const testScenarios = {
     try {
       const session = await stripe.billingPortal.sessions.create({
         customer: customerId,
-        return_url: "http://localhost:3000/dashboard",
+        return_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://localhost:3000'}/Studio`,
       })
 
       return { success: true, portalUrl: session.url }
