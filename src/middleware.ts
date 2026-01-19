@@ -49,7 +49,8 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
 
   // Check if current path is an auth route
-  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route))
+  // Exclude ProfileSetup from auth routes since authenticated users need to access it for onboarding
+  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route)) && !pathname.startsWith("/Signup/ProfileSetup")
 
   // Check if current path is a protected API route
   const isProtectedApiRoute = protectedApiRoutes.some(route => pathname.startsWith(route))
@@ -73,6 +74,7 @@ export async function middleware(request: NextRequest) {
   // Redirect authenticated users from auth routes to Studio
   // Note: The actual redirect logic (to ProfileSetup or Studio) is handled in the Login/Signup pages
   // based on onboarding status. This is just to prevent accessing login/signup when already logged in.
+  // ProfileSetup is excluded from this check since authenticated users need to complete onboarding.
   if (isAuthRoute && session?.user) {
     return NextResponse.redirect(new URL("/Studio", request.url))
   }

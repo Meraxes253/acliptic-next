@@ -130,7 +130,7 @@ export const testScenarios = {
       })
 
       return { success: true, portalUrl: session.url }
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error.message }
     }
   },

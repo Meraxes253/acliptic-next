@@ -4,7 +4,7 @@ import { users } from '@/db/schema/users';
 import { passwordResetTokens } from '@/db/schema/passwordResetTokens';
 import { eq, and, gt } from 'drizzle-orm';
 import crypto from 'crypto';
-import bcrypt from 'bcryptjs';
+import { hash } from "@/lib/password";
 import { sendPasswordChangedEmail } from '@/lib/email';
 
 export async function POST(req: Request) {
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     }
 
     // Hash new password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hash(password);
 
     // Update user password
     await db
@@ -77,7 +77,9 @@ export async function POST(req: Request) {
       .where(eq(passwordResetTokens.id, resetToken.id));
 
     // Send confirmation email
-    await sendPasswordChangedEmail(user.email, user.username || 'User');
+    if (user.email) {
+      await sendPasswordChangedEmail(user.email, user.username || 'User');
+    }
 
     return NextResponse.json(
       { message: 'Password reset successful' },

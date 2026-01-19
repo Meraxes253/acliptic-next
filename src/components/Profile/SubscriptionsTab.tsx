@@ -40,10 +40,10 @@ interface Plan {
 interface Subscription {
   plan: Plan;
   subscription: {
+    id?: string;
     is_active: boolean;
     currentPeriodStart: string | null;
     currentPeriodEnd: string | null;
-    stripeSubscriptionId: string | null;
   };
   usage: {
     total_seconds_processed: number;
@@ -81,19 +81,69 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
   // Fetch invoices
   const { data: invoices, isLoading: invoicesLoading } = useSWR<Invoice[]>('/api/user/invoices', fetcher);
 
-  const handleUpgrade = async (planId: string) => {
-    if (planId === 'free') return;
+  // Check if user has a paid subscription (not free tier)
+  const hasPaidSubscription = () => {
+    if (!subscription?.subscription?.id) return false;
+    // Free subscriptions start with 'free_'
+    return !subscription.subscription.id.startsWith('free_');
+  };
+
+  const handlePlanChange = async (planId: string) => {
+    // Don't do anything if selecting current plan
+    if (isCurrentPlan(planId)) return;
 
     setUpgradeLoading(true);
     try {
-      await redirectToCheckout({
-        priceId: planId,
-        successUrl: `${window.location.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/checkout/cancel`,
-      });
-    } catch (error) {
-      console.error('Checkout error:', error);
-      toast.error('Failed to start checkout. Please try again.');
+      // If user is on free tier (or has no paid subscription), use checkout flow
+      if (!hasPaidSubscription()) {
+        // If selecting free plan, do nothing
+        if (planId === 'free' || plans?.find(p => p.id === planId)?.amount === 0) {
+          toast.info('You are already on the free plan.');
+          setUpgradeLoading(false);
+          return;
+        }
+
+        // Go through Stripe checkout for first-time paid subscription
+        await redirectToCheckout({
+          priceId: planId,
+          successUrl: `${window.location.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/checkout/cancel`,
+        });
+      } else {
+        // User has a paid subscription - use change-plan API
+        const response = await fetch('/api/subscription/change-plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newPriceId: planId }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to change plan');
+        }
+
+        // Show appropriate message based on upgrade/downgrade
+        if (data.type === 'upgrade') {
+          toast.success('Plan upgraded!', {
+            description: data.message,
+          });
+        } else if (data.type === 'downgrade') {
+          toast.success('Plan change scheduled', {
+            description: data.message,
+          });
+        } else if (data.type === 'downgrade_to_free') {
+          toast.success('Subscription cancelled', {
+            description: data.message,
+          });
+        }
+
+        // Refresh subscription data
+        mutateSubscription();
+      }
+    } catch (error: any) {
+      console.error('Plan change error:', error);
+      toast.error(error.message || 'Failed to change plan. Please try again.');
     } finally {
       setUpgradeLoading(false);
     }
@@ -110,7 +160,7 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
   };
 
   const isCurrentPlan = (planId: string) => {
-    if (!subscription) return planId === 'free';
+    if (!subscription || !subscription.plan) return planId === 'free';
     return subscription.plan.id === planId;
   };
 
@@ -128,7 +178,8 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
     return `${used}/${max} ${unit}`;
   };
 
-  if (loading || subscriptionLoading) {
+  // Show loading state if data is being fetched or subscription is not yet defined
+  if (loading || subscriptionLoading || !subscription) {
     return (
       <div className="space-y-6">
         {/* Current Plan Skeleton */}
@@ -181,7 +232,7 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
           <div className="flex items-center gap-3 mb-4">
             <Crown className="w-6 h-6 text-black" />
             <h2 className="text-xl denton-condensed text-black">Current Plan</h2>
-            {subscription?.subscription.is_active && (
+            {subscription?.subscription?.is_active && (
               <Badge className="bg-green-600 text-black">Active</Badge>
             )}
           </div>
@@ -189,37 +240,36 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-black mb-1">
-                {subscription?.plan.name || 'Free Plan'}
+                {subscription?.plan?.name || 'Free Plan'}
               </h3>
               <p className="text-sm text-gray-600">
-                {subscription?.subscription.is_active
-                  ? `Next billing: ${formatDate(subscription.subscription.currentPeriodEnd)}`
+                {subscription?.subscription?.is_active
+                  ? `Next billing: ${formatDate(subscription.subscription.currentPeriodEnd ?? null)}`
                   : 'No active subscription'
                 }
               </p>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-black mb-1">
-                {(subscription?.plan.amount ?? 0) === 0
+                {(subscription?.plan?.amount ?? 0) === 0
                   ? 'Free'
-                  : formatCurrency(subscription?.plan.amount ?? 0)
+                  : formatCurrency(subscription?.plan?.amount ?? 0)
                 }
               </p>
-              {(subscription?.plan.amount ?? 0) > 0 && (
+              {(subscription?.plan?.amount ?? 0) > 0 && (
                 <p className="text-xs text-gray-600">
-                  per {subscription?.plan.interval ?? 'month'}
+                  per {subscription?.plan?.interval ?? 'month'}
                 </p>
               )}
             </div>
           </div>
 
-          {subscription?.subscription.is_active && (
+          {subscription?.subscription?.is_active && (
             <div className="mt-4 pt-4 border-t border-gray-600">
               <Button
                 onClick={handleBillingPortal}
-                variant="outline"
                 size="sm"
-                className="bg-transparent border-gray-600 text-black hover:bg-gray-600 rounded-full"
+                className="bg-transparent text-black hover:bg-white/30 rounded-full border-0 shadow-md"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Manage Billing
@@ -342,14 +392,12 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
                     )}
 
                     <Button
-                      onClick={() => handleUpgrade(plan.id)}
+                      onClick={() => handlePlanChange(plan.id)}
                       disabled={isCurrent || upgradeLoading}
                       className={`w-full rounded-full transition-all ${
                         isCurrent
-                          ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                          : (plan.amount ?? 0) === 0
-                          ? 'gradient-silver border border-gray-600 text-black hover:bg-gray-800'
-                          : 'gradient-silver text-black hover hover:opacity-90 border-0'
+                          ? 'bg-gray-400 text-gray-600 cursor-not-allowed shadow-md'
+                          : 'bg-transparent text-black hover:bg-white/30 border-0 shadow-md'
                       }`}
                     >
                       {upgradeLoading ? (
@@ -358,10 +406,12 @@ export default function SubscriptionsTab({ user_id, loading = false }: Subscript
                         'Current Plan'
                       ) : (plan.amount ?? 0) === 0 ? (
                         'Downgrade to Free'
+                      ) : (subscription?.plan?.amount ?? 0) > (plan.amount ?? 0) ? (
+                        'Downgrade'
                       ) : (
                         <>
                           <Zap className="w-4 h-4 mr-2" />
-                          change plan
+                          Upgrade
                         </>
                       )}
                     </Button>

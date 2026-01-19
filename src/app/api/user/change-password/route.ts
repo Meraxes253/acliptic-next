@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { users } from '@/db/schema/users';
 import { eq } from 'drizzle-orm';
-import bcrypt from 'bcryptjs';
+import { hash, compare } from "@/lib/password";
 import { auth } from '@/auth';
 import { sendPasswordChangedEmail } from '@/lib/email';
 
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     }
 
     // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordValid = await compare(currentPassword, user.password);
     if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Current password is incorrect' },
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     }
 
     // Check if new password is same as current
-    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    const isSamePassword = await compare(newPassword, user.password);
     if (isSamePassword) {
       return NextResponse.json(
         { error: 'New password must be different from current password' },
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     }
 
     // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await hash(newPassword);
 
     // Update password
     await db
@@ -76,7 +76,9 @@ export async function POST(req: Request) {
       .where(eq(users.id, user.id));
 
     // Send confirmation email
-    await sendPasswordChangedEmail(user.email, user.username || 'User');
+    if (user.email) {
+      await sendPasswordChangedEmail(user.email, user.username || 'User');
+    }
 
     return NextResponse.json(
       { message: 'Password changed successfully' },

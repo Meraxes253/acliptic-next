@@ -48,9 +48,10 @@ export async function handleStripeWebhook(event: any) {
       await handleCheckoutSessionCompleted(event.data.object)
       break
 
-    case "customer.subscription.trial_will_end":
-      await handleTrialWillEnd(event.data.object)
-      break
+    // Trial functionality removed from schema
+    // case "customer.subscription.trial_will_end":
+    //   await handleTrialWillEnd(event.data.object)
+    //   break
 
     default:
       console.log(`[Webhook] Unhandled event type: ${event.type}`)
@@ -64,7 +65,7 @@ async function handleCustomerCreated(customer: any) {
   // If customer has userId in metadata, link them
   if (customer.metadata?.userId) {
     try {
-      await createOrRetrieveCustomer(customer.metadata.userId, customer.email, customer.name)
+      await createOrRetrieveCustomer(customer.metadata.userId)
     } catch (error) {
       console.error("Error linking customer:", error)
     }
@@ -109,16 +110,12 @@ async function handleSubscriptionCreated(subscription: any) {
     // Create subscription record
     await db.insert(subscriptions).values({
       userId: customer[0].userId,
-      customerId: customer[0].id,
+      stripeCustomerId: customer[0].stripeCustomerId,
       stripeSubscriptionId: subscription.id,
-      planId: subscription.items.data[0].price.id,
-      status: subscription.status,
+      priceId: subscription.items.data[0].price.id,
+      is_active: subscription.status === 'active' || subscription.status === 'trialing',
       currentPeriodStart: new Date(subscription.current_period_start * 1000),
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
-      trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
-      canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
     })
 
     console.log(`[Webhook] Subscription record created for user: ${customer[0].userId}`)
@@ -137,8 +134,6 @@ async function handleSubscriptionUpdated(subscription: any) {
       subscription.status,
       subscription.current_period_start,
       subscription.current_period_end,
-      subscription.cancel_at_period_end,
-      subscription.canceled_at,
     )
   } catch (error) {
     console.error("Error updating subscription:", error)
@@ -265,6 +260,7 @@ async function handleInvoicePaid(invoice: any) {
           .update(subscriptions)
           .set({
             status: "active",
+            is_active: true,
             updatedAt: new Date(),
           })
           .where(eq(subscriptions.id, subscription[0].id))
@@ -277,7 +273,7 @@ async function handleInvoicePaid(invoice: any) {
         // - Trigger onboarding flow
         // - Update user role in your app
 
-        await provisionUserAccess(customer[0].userId, subscription[0].planId)
+        await provisionUserAccess(customer[0].userId, subscription[0].priceId)
       }
     }
   } catch (error) {
@@ -338,27 +334,28 @@ async function handleCheckoutSessionCompleted(session: any) {
   }
 }
 
+// Trial functionality removed from schema
 // Handle trial ending soon
-async function handleTrialWillEnd(subscription: any) {
-  console.log(`[Webhook] Trial will end: ${subscription.id}`)
+// async function handleTrialWillEnd(subscription: any) {
+//   console.log(`[Webhook] Trial will end: ${subscription.id}`)
 
-  try {
-    const customer = await db
-      .select()
-      .from(customers)
-      .where(eq(customers.stripeCustomerId, subscription.customer))
-      .limit(1)
+//   try {
+//     const customer = await db
+//       .select()
+//       .from(customers)
+//       .where(eq(customers.stripeCustomerId, subscription.customer))
+//       .limit(1)
 
-    if (customer[0]) {
-      console.log(`[Webhook] Trial ending for user: ${customer[0].userId}`)
+//     if (customer[0]) {
+//       console.log(`[Webhook] Trial ending for user: ${customer[0].userId}`)
 
-      // Send trial ending notification
-      await sendTrialEndingNotification(customer[0].userId, subscription.trial_end)
-    }
-  } catch (error) {
-    console.error("Error handling trial ending:", error)
-  }
-}
+//       // Send trial ending notification
+//       await sendTrialEndingNotification(customer[0].userId, subscription.trial_end)
+//     }
+//   } catch (error) {
+//     console.error("Error handling trial ending:", error)
+//   }
+// }
 
 // Helper function to provision user access
 async function provisionUserAccess(userId: string, planId: string) {
@@ -403,17 +400,18 @@ async function handlePaymentFailure(userId: string, invoiceId: string) {
   }
 }
 
+// Trial functionality removed from schema
 // Helper function to send trial ending notification
-async function sendTrialEndingNotification(userId: string, trialEndTimestamp: number) {
-  console.log(`[Trial] Sending trial ending notification to user ${userId}`)
+// async function sendTrialEndingNotification(userId: string, trialEndTimestamp: number) {
+//   console.log(`[Trial] Sending trial ending notification to user ${userId}`)
 
-  const trialEndDate = new Date(trialEndTimestamp * 1000)
+//   const trialEndDate = new Date(trialEndTimestamp * 1000)
 
-  try {
-    // await sendTrialEndingEmail(userId, trialEndDate)
+//   try {
+//     // await sendTrialEndingEmail(userId, trialEndDate)
 
-    console.log(`[Trial] Sent trial ending notification to user ${userId}`)
-  } catch (error) {
-    console.error(`[Trial] Failed to send trial ending notification to user ${userId}:`, error)
-  }
-}
+//     console.log(`[Trial] Sent trial ending notification to user ${userId}`)
+//   } catch (error) {
+//     console.error(`[Trial] Failed to send trial ending notification to user ${userId}:`, error)
+//   }
+// }

@@ -30,7 +30,7 @@ export function SubscriptionGuard({
       // Simulate API call
       setTimeout(() => {
         // Mock: user has basic plan
-        const userPlan = "free" // This would come from your auth/subscription context
+        const userPlan = "free" as "free" | "basic" | "pro" // This would come from your auth/subscription context
         const hasRequiredAccess = userPlan === requiredPlan || (requiredPlan === "basic" && userPlan === "pro")
 
         setHasAccess(hasRequiredAccess)

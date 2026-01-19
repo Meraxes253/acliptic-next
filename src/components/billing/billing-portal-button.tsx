@@ -29,7 +29,7 @@ export function BillingPortalButton({
   const handleClick = async () => {
     setLoading(true)
     try {
-      await redirectToPortal(userId, returnUrl || window.location.href)
+      await redirectToPortal(returnUrl || window.location.href)
     } catch (error) {
       console.error("Failed to redirect to billing portal:", error)
       // You might want to show a toast notification here

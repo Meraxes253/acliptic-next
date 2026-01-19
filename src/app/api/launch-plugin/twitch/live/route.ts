@@ -136,18 +136,7 @@ export async function POST(req: NextRequest) {
     console.log(platforms)
 
     const user = result[0] as UserWithPresets
-    const username = user?.username
     const captions = user?.presets?.captions || false
-
-    if (!username) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Username not set for user!`,
-        },
-        { status: 400 },
-      )
-    }
 
     let streamData: StreamInfo
     try {
@@ -245,7 +234,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: `Started monitoring for streamer ${username}`,
+        message: `Started monitoring for streamer ${twitch_username}`,
       },
       { status: 200 },
     )

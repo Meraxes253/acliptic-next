@@ -80,16 +80,7 @@ export async function POST(req: NextRequest) {
         
         // Cast the user result to our typed interface and handle presets safely
         const user = result[0] as UserWithPresets
-        const username = user?.username
         const captions = user?.presets?.captions || false // Provide a default value
-
-        if (!username) {
-            return NextResponse.json({
-                success: false,
-                message: `Username not set for user!`
-            }, { status: 400 });
-        }
-        
 
         // for prerecorded video
         const response = await fetch(`${process.env.PY_BACKEND_URL}/${user_id}/youtube/plugin/pre_recorded/launch`, {
@@ -101,27 +92,25 @@ export async function POST(req: NextRequest) {
             body: JSON.stringify({
                 "streamer_id": user_id,
                 "stream_id": stream_id,
-                "streamer_name": username,
+                "streamer_name": user_id,
                 "captions": captions,
                 "auto_upload": {
                     "platforms" : platforms
-                    // "platforms" : []
                 },
                 "streamData" : {
-                    "twitch_username": username,
                     "url": video_url,
                     "quality": "480p",
-                    "resolution": "480" // should this be hardcoded?
+                    "resolution": "480"
                 }
-                
+
                 })
         });
 
 
-        
+
         return NextResponse.json({
             success: true,
-            message: `Started monitoring for streamer ${username}`,
+            message: `Started processing YouTube video`,
         }, { status: 200 });
 
     } catch (error: any) {

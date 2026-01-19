@@ -64,31 +64,12 @@ export async function getPlanLimits(userId: string) {
 
 // Check if user is on trial
 export async function isOnTrial(userId: string): Promise<boolean> {
-  const subscription = await getUserSubscription(userId)
-
-  if (!subscription) return false
-
-  const now = new Date()
-  return (
-    subscription.subscription.trialEnd !== null &&
-    new Date(subscription.subscription.trialEnd) > now &&
-    subscription.subscription.status === "trialing"
-  )
+  // Trial functionality removed from schema
+  return false
 }
 
 // Get trial days remaining
 export async function getTrialDaysRemaining(userId: string): Promise<number> {
-  const subscription = await getUserSubscription(userId)
-
-  if (!subscription || !subscription.subscription.trialEnd) return 0
-
-  const now = new Date()
-  const trialEnd = new Date(subscription.subscription.trialEnd)
-
-  if (trialEnd <= now) return 0
-
-  const diffTime = trialEnd.getTime() - now.getTime()
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-  return Math.max(0, diffDays)
+  // Trial functionality removed from schema
+  return 0
 }

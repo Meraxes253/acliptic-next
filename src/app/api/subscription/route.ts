@@ -28,11 +28,9 @@ export async function GET(req: NextRequest) {
     const response = {
       subscription: {
         id: subscriptionData.subscription.stripeSubscriptionId,
-        status: subscriptionData.subscription.is_active === true ? "active" : "inactive",
+        is_active: subscriptionData.subscription.is_active,
         currentPeriodStart: subscriptionData.subscription.currentPeriodStart?.toISOString(),
         currentPeriodEnd: subscriptionData.subscription.currentPeriodEnd?.toISOString(),
-        cancelAtPeriodEnd: false, // You can add this field to your schema if needed
-        trialEnd: null, // You can add this field to your schema if needed
       },
       plan: {
         id: subscriptionData.plan.id,

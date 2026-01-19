@@ -28,6 +28,10 @@ export async function POST(req: NextRequest) {
 
     console.log(`[Portal] Found customer: ${customer.stripeCustomerId}`)
 
+    if (!customer.stripeCustomerId) {
+      return NextResponse.json({ error: "Stripe customer ID not found" }, { status: 404 })
+    }
+
     // Create billing portal session
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customer.stripeCustomerId,

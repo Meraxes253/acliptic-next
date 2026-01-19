@@ -53,6 +53,12 @@ export async function POST(req: Request) {
     });
 
     // Send email
+    if (!user.email) {
+      return NextResponse.json(
+        { error: 'User email not found' },
+        { status: 400 }
+      );
+    }
     const emailResult = await sendPasswordResetEmail(user.email, resetToken);
 
     if (!emailResult.success) {

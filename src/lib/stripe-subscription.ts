@@ -27,15 +27,12 @@ export async function createSubscription(userId: string, priceId: string, paymen
     .insert(subscriptions)
     .values({
       userId: userId,
-      customerId: customer[0].id,
+      stripeCustomerId: customer[0].stripeCustomerId,
       stripeSubscriptionId: subscription.id,
-      planId: priceId,
-      status: subscription.status,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
-      trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      priceId: priceId,
+      is_active: subscription.status === 'active' || subscription.status === 'trialing',
+      currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+      currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
     })
     .returning()
 
@@ -48,11 +45,9 @@ export async function updateSubscriptionStatus(
   status: string,
   currentPeriodStart?: number,
   currentPeriodEnd?: number,
-  cancelAtPeriodEnd?: boolean,
-  canceledAt?: number,
 ) {
   const updateData: any = {
-    status,
+    is_active: status === 'active' || status === 'trialing',
     updatedAt: new Date(),
   }
 
@@ -62,14 +57,6 @@ export async function updateSubscriptionStatus(
 
   if (currentPeriodEnd) {
     updateData.currentPeriodEnd = new Date(currentPeriodEnd * 1000)
-  }
-
-  if (cancelAtPeriodEnd !== undefined) {
-    updateData.cancelAtPeriodEnd = cancelAtPeriodEnd
-  }
-
-  if (canceledAt) {
-    updateData.canceledAt = new Date(canceledAt * 1000)
   }
 
   const [updatedSubscription] = await db
@@ -86,7 +73,7 @@ export async function cancelSubscription(userId: string, immediately = false) {
   const userSubscription = await db
     .select()
     .from(subscriptions)
-    .where(and(eq(subscriptions.userId, userId), eq(subscriptions.status, "active")))
+    .where(and(eq(subscriptions.userId, userId), eq(subscriptions.is_active, true)))
     .limit(1)
 
   if (!userSubscription[0]) {
@@ -104,10 +91,8 @@ export async function cancelSubscription(userId: string, immediately = false) {
   await updateSubscriptionStatus(
     userSubscription[0].stripeSubscriptionId,
     canceledSubscription.status,
-    canceledSubscription.current_period_start,
-    canceledSubscription.current_period_end,
-    canceledSubscription.cancel_at_period_end,
-    canceledSubscription.canceled_at,
+    (canceledSubscription as any).current_period_start,
+    (canceledSubscription as any).current_period_end,
   )
 
   return canceledSubscription
@@ -122,8 +107,8 @@ export async function getSubscriptionWithPlan(userId: string) {
       customer: customers,
     })
     .from(subscriptions)
-    .innerJoin(plans, eq(subscriptions.planId, plans.id))
-    .innerJoin(customers, eq(subscriptions.customerId, customers.id))
+    .innerJoin(plans, eq(subscriptions.priceId, plans.id))
+    .innerJoin(customers, eq(subscriptions.stripeCustomerId, customers.stripeCustomerId))
     .where(eq(subscriptions.userId, userId))
     .limit(1)
 

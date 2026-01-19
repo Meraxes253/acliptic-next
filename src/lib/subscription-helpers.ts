@@ -63,7 +63,7 @@ export async function getOrCreateCustomer(userId: string, email: string, name?: 
 // Check if user has active subscription
 export async function hasActiveSubscription(userId: string): Promise<boolean> {
   const subscription = await getUserSubscription(userId)
-  return subscription !== null && subscription.subscription.status === "active"
+  return subscription !== null && subscription.subscription.is_active === true
 }
 
 // Get all available plans
