@@ -150,8 +150,6 @@ async function handleSubscriptionDeleted(subscription: any) {
       "canceled",
       subscription.current_period_start,
       subscription.current_period_end,
-      false,
-      subscription.canceled_at || Math.floor(Date.now() / 1000),
     )
   } catch (error) {
     console.error("Error deleting subscription:", error)
@@ -259,7 +257,6 @@ async function handleInvoicePaid(invoice: any) {
         await db
           .update(subscriptions)
           .set({
-            status: "active",
             is_active: true,
             updatedAt: new Date(),
           })
@@ -382,7 +379,7 @@ async function provisionUserAccess(userId: string, planId: string) {
 }
 
 // Helper function to handle payment failures
-async function handlePaymentFailure(userId: string, invoiceId: string) {
+async function handlePaymentFailure(userId: string, _invoiceId: string) {
   console.log(`[Payment] Handling payment failure for user ${userId}`)
 
   // Add your business logic here:

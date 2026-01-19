@@ -6,7 +6,7 @@ import Navigation from '@/components/main/mainNavigation';
 import ValuesSection from '@/components/ValueSection';
 import Image from 'next/image';
 import { useEffect } from 'react';
-import Lenis from '@studio-freight/lenis';
+import Lenis from 'lenis';
 import Link from 'next/link';
 
 interface AboutPageProps {

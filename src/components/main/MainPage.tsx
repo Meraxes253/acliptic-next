@@ -5,7 +5,7 @@ import Navigation from '@/components/main/mainNavigation';
 import { LazyVideo } from '@/components/LazyVideo';
 import Link from 'next/link';
 import { useEffect } from 'react';
-import Lenis from '@studio-freight/lenis';
+import Lenis from 'lenis';
 import AIReframeComponent from './AIReframeComponent';
 import HowItWorksComponent from './HowItWorksComponent';
 import InteractiveDemoComponent from './InteractiveDemoComponent';
