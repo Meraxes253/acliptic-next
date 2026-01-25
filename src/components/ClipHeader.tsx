@@ -11,7 +11,7 @@ export default function Header({ clipCount }: HeaderProps) {
       {/* Button with Inline SVG */}
       <Link href="/Studio">
         <Button
-          className="h-8 w-8 md:h-10 md:w-10 bg-white rounded-xl flex items-center justify-center p-0 mr-4 md:mr-8 lg:mr-16"
+          className="h-8 w-8 md:h-10 md:w-10 gradient-silver text-black dark:text-black rounded-xl flex items-center justify-center p-0 mr-4 md:mr-8 lg:mr-16"
           variant="outline"
         >
           <svg
@@ -30,7 +30,7 @@ export default function Header({ clipCount }: HeaderProps) {
       </Link>
       
       {/* Heading */}
-      <h1 className="text-2xl md:text-3xl lg:text-[35px] leading-normal lg:leading-[3.75rem] m-0 p-0">
+      <h1 className="text-2xl md:text-3xl lg:text-[35px] leading-normal lg:leading-[3.75rem] m-0 p-0 text-black dark:text-white">
         Your Clips ({clipCount})
       </h1>
     </div>

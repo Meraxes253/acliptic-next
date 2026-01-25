@@ -76,7 +76,7 @@ export async function GET(
 				thumbnail_url: stream.thumbnail_url,
 				created_at: stream.created_at,
 				updated_at: stream.updated_at,
-				clipCount: sql<number>`COUNT(${clip.clip_id})`,
+				clipCount: sql<number>`CAST(COUNT(${clip.clip_id}) AS INTEGER)`,
 			})
 			.from(stream)
 			.leftJoin(clip, eq(clip.stream_id, stream.stream_id))
@@ -93,7 +93,7 @@ export async function GET(
 		if (sortBy === 'title') {
 			query = query.orderBy(sortOrder === 'asc' ? asc(stream.stream_title) : desc(stream.stream_title));
 		} else if (sortBy === 'clipCount') {
-			query = query.orderBy(sortOrder === 'asc' ? asc(sql<number>`COUNT(${clip.clip_id})`) : desc(sql<number>`COUNT(${clip.clip_id})`));
+			query = query.orderBy(sortOrder === 'asc' ? asc(sql<number>`CAST(COUNT(${clip.clip_id}) AS INTEGER)`) : desc(sql<number>`CAST(COUNT(${clip.clip_id}) AS INTEGER)`));
 		} else {
 			// Default to date sorting
 			query = query.orderBy(sortOrder === 'asc' ? asc(stream.created_at) : desc(stream.created_at));
