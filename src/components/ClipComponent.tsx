@@ -54,7 +54,7 @@ export default function ClipComponent({
 					<div className="flex justify-between gap-2 mt-4 md:mt-[1.4375rem] w-full max-w-[240px]">
 						<Button
 							variant="outline"
-							className={`h-10 md:h-[48px] rounded-[18px] font-medium ${
+							className={`h-10 md:h-[48px] rounded-[18px] font-medium gradient-silver text-black dark:text-black ${
 								autoUploaded ? 'w-full' : 'flex-1 md:w-[140px]'
 							}`}
 						>
@@ -65,7 +65,7 @@ export default function ClipComponent({
 						{!autoUploaded && (
 							<Button
 								variant="outline"
-								className="h-10 md:h-[48px] w-16 md:w-[88px] rounded-[18px] font-medium"
+								className="h-10 md:h-[48px] w-16 md:w-[88px] rounded-[18px] font-medium gradient-silver text-black dark:text-black"
 								onClick={handleEditClickAlt}
 							>
 								<p className="text-xs md:text-sm font-medium">Edit</p>
@@ -77,27 +77,27 @@ export default function ClipComponent({
 				{/* Content column */}
 				<div className="flex flex-col max-h-[510px] w-full overflow-hidden relative">
 					<div className="flex flex-col gap-4 md:gap-6 lg:gap-[2.5625rem]">
-						<h2 className="text-lg md:text-xl lg:text-[21px] leading-normal lg:leading-[2.2rem]">
+						<h2 className="text-lg md:text-xl lg:text-[21px] leading-normal lg:leading-[2.2rem] text-black dark:text-white">
 							{title} ({duration})
 						</h2>
                         
-						<div className="bg-[#F6F6F8] rounded-[18px] p-4 md:p-6 lg:h-[172px] lg:pt-[1.6875rem] lg:pl-[2rem] lg:pr-[1.5625rem]">
-							<p className="text-base md:text-lg lg:text-[18px] leading-6">
+						<div className="bg-[#F6F6F8] dark:bg-[#1a1a1a] rounded-[18px] p-4 md:p-6 lg:h-[172px] lg:pt-[1.6875rem] lg:pl-[2rem] lg:pr-[1.5625rem]">
+							<p className="text-base md:text-lg lg:text-[18px] leading-6 text-black dark:text-white">
 								#{index} Virality score ({viralityScore}/100)
 							</p>
-							<p className="text-sm md:text-base lg:text-[16px] leading-tight md:leading-[1.25rem] mt-2 md:mt-3 lg:mt-[1.125rem] text-black/60 hel-font">
+							<p className="text-sm md:text-base lg:text-[16px] leading-tight md:leading-[1.25rem] mt-2 md:mt-3 lg:mt-[1.125rem] text-black/60 dark:text-white/60 hel-font">
 								{contentCritique}
 							</p>
 						</div>
                         
 						<div className="w-full px-4 md:px-6 lg:max-w-[1230px] lg:ml-[2rem]">
-							<h3 className="text-base md:text-lg lg:text-[18px] leading-6">
+							<h3 className="text-base md:text-lg lg:text-[18px] leading-6 text-black dark:text-white">
 								Transcript
 							</h3>
-							<p className="mt-2 md:mt-3 lg:mt-[1.25rem] text-sm md:text-base lg:text-[16px] leading-tight md:leading-[1.25rem] text-black/60 hel-font">
+							<p className="mt-2 md:mt-3 lg:mt-[1.25rem] text-sm md:text-base lg:text-[16px] leading-tight md:leading-[1.25rem] text-black/60 dark:text-white/60 hel-font">
 								{transcript}
 							</p>
-							<div className="absolute bottom-0 left-0 w-full h-[30px] bg-gradient-to-t from-white/80 via-white/40 to-white/0 pointer-events-none"></div>
+							<div className="absolute bottom-0 left-0 w-full h-[30px] bg-gradient-to-t from-white/80 via-white/40 to-white/0 dark:from-black/80 dark:via-black/40 dark:to-black/0 pointer-events-none"></div>
 						</div>
 					</div>
 				</div>

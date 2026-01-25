@@ -6,7 +6,7 @@ import Stripe from "stripe"
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
 if (!stripeSecretKey) {
-  console.error("STRIPE_SECRET_KEY environment variable is not set. Using test key for development.");
+  // console.error("STRIPE_SECRET_KEY environment variable is not set. Using test key for development.");
 }
 
 export const stripe = new Stripe(stripeSecretKey || "sk_test_default", {

@@ -31,7 +31,7 @@ interface Stream {
   created_at?: string
   updated_at?: string
   thumbnail_url: string | null
-  clipCount: ClipCount[] | number | null
+  clipCount: ClipCount[] | number | string | null
 }
 
 interface ApiResponse {
@@ -75,13 +75,18 @@ function formatStreamTime(streamDate: Date): string {
 }
 
 // Helper function to extract clip count from various data types
-function extractClipCount(clipCount: ClipCount[] | number | null | undefined): number {
-  if (!clipCount) {
+function extractClipCount(clipCount: ClipCount[] | number | string | null | undefined): number {
+  if (clipCount === null || clipCount === undefined) {
     return 0
   }
 
   if (typeof clipCount === "number") {
     return clipCount
+  }
+
+  // Handle string type (PostgreSQL bigint comes as string)
+  if (typeof clipCount === "string") {
+    return parseInt(clipCount, 10) || 0
   }
 
   if (Array.isArray(clipCount)) {
